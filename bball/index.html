@@ -25,7 +25,7 @@ function getLeagueParam() {
 async function loadData(leagueID) {
     var json = JSON.parse(localStorage.getItem('basketballData' + leagueID));
     
-    if (!json || (new Date() - new Date(json.timestamp)) / 1000 > 3600) { // older 1h
+    if (!json || (new Date() - new Date(json.timestamp)) / 1000 > 10 * 60) { // older 10min
         var response = await fetch('https://api.codetabs.com/v1/proxy/?quest=https://www.basketball-bund.net/rest/competition/crosstable/id/' + leagueID); // CORS proxy: https://codetabs.com/cors-proxy/cors-proxy.html
         json = await response.json();
         if (json.data) {
