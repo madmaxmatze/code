@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Cloud Shell - Checker
 // @namespace    https://mathiasnitzsche.de
-// @version      1.0
+// @version      1.1
 // @description  Script to check remaining time within Google Cloud Shell quota to avoid being locked out
 // @author       Mathias Nitzsche
 // @match        https://shell.cloud.google.com/*
@@ -14,20 +14,17 @@
     'use strict';
 
     function checkTime () {
-        fetch('https://shell.cloud.google.com/devshell/quota?authuser=0').then(response => {
-            // console.log(JSON.stringify(response) );
-            // response.text().then(result => {return console.log(result);});
-            response.text().then(result => {
-                var [remainingSecs, totalSecs, endDate] = JSON.parse(result.split("\n")[1]).flat()
-                console.log("remainingSecs", remainingSecs);
-                console.log("totalSecs", totalSecs);
-                console.log("endDate", endDate);
-                if (remainingSecs < 3 * 3600) {
+        fetch('https://shell.cloud.google.com/devshell/quota').then(response => {
+            response.text().then(textResult => {
+                var [remainingSecs, totalSecs, endDate] = JSON.parse(textResult.split("\n")[1]).flat();
+                var remainingHours = remainingSecs / 60 / 60;
+                console.log("Cloud Quota checked. Remaining hours: ", remainingHours.toFixed(1));
+                if (remainingHours < 3) {
                     alert("Less then 3 hours left");
                 }
             });
         });
     }
 
-    setInterval(checkTime, 5000);
+    setInterval(checkTime, 1000 * 60 * 30); // check every 30mins
 })();
