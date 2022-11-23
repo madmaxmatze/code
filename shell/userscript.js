@@ -15,16 +15,15 @@
     'use strict';
 
     function checkTime() {
-        fetch('https://shell.cloud.google.com/devshell/quota').then(response => {
-            response.text().then(textResult => {
-                var [remainingSecs, totalSecs, endDate] = JSON.parse(textResult.split("\n")[1]).flat();
-                var remainingHours = remainingSecs / 60 / 60;
-                console.log("Cloud Quota checked. Remaining hours: ", remainingHours.toFixed(1));
+        fetch('/devshell/quota')
+            .then(response => response.text())
+            .then(textResult => textResult.match(/(\d+)/).shift() / 3600)
+            .then(remainingHours => {
+                console.log(`Cloud Quota checked. Hours remaining: ${remainingHours.toFixed(1)}`);
                 if (remainingHours < 3) {
                     alert(remainingHours + " hours left before Google Cloud Shell Quota is exceeded");
                 }
             });
-        });
         return checkTime;
     }
 
