@@ -9,23 +9,23 @@
 // @author       Mathias Nitzsche
 // @match        https://shell.cloud.google.com/*
 // @icon         https://shell.cloud.google.com/favicon.ico
+// @noframes
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    function checkTime() {
+    async function checkTime() {
         fetch('/devshell/quota')
             .then(response => response.text())
             .then(textResult => textResult.match(/(\d+)/).shift() / 3600)
             .then(remainingHours => {
-                console.log(`Cloud Quota checked. Hours remaining: ${remainingHours.toFixed(1)}`);
-                if (remainingHours < 3) {
-                    alert(remainingHours + " hours left before Google Cloud Shell Quota is exceeded");
-                }
-            });
-        return checkTime;
-    }
+                 var message = `Cloud Quota checked. Hours remaining: ${remainingHours.toFixed(1)}`;
+                 console.log(message);
+                 if (remainingHours < 5) { alert(message); }
+             });
+    };
 
-    setInterval(checkTime(), 1000 * 60 * 30); // check every 30mins
+    setInterval(checkTime, 1000 * 60 * 30); // every 30mins
+    checkTime();
 })();
