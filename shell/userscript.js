@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         New Userscript
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  loaded from github
 // @author       You
 // @match        https://shell.cloud.google.com/?show=ide%2Cterminal
