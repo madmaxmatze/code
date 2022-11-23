@@ -1,6 +1,7 @@
+// source: https://github.com/madmaxmatze/code/tree/main/shell
+// UserScript for tampermonkey.net chrome extension
+
 // ==UserScript==
-// For tampermonkey.net chrome extension 
-// source        https://github.com/madmaxmatze/code/tree/main/shell
 // @name         Google Cloud Shell - Quota Checker
 // @namespace    https://mathiasnitzsche.de
 // @version      1.0
