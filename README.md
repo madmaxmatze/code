@@ -1,3 +1,3 @@
-# code.mathiasnitzsche.de
+# [code.mathiasnitzsche.de](https://code.mathiasnitzsche.de/)
 
-Some code snippets hosted on [github](https://github.com/madmaxmatze/code)
+Hosting for code from [github.com/madmaxmatze/code](https://github.com/madmaxmatze/code)
