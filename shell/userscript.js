@@ -1,4 +1,6 @@
 // ==UserScript==
+// For tampermonkey.net chrome extension 
+// source        https://github.com/madmaxmatze/code/tree/main/shell
 // @name         Google Cloud Shell - Quota Checker
 // @namespace    https://mathiasnitzsche.de
 // @version      1.0
@@ -25,5 +27,5 @@
         return checkTime;
     }
 
-    setInterval(checkTime(), 1000 * 60 * 10); // check every 30mins
+    setInterval(checkTime(), 1000 * 60 * 30); // check every 30mins
 })();
