@@ -15,17 +15,21 @@
 (function() {
     'use strict';
 
-    async function checkTime() {
-        fetch('/devshell/quota')
+    var authuser = (new URLSearchParams(location.search)).get('authuser') || 0;
+
+    function checkTime() {
+        fetch(`/devshell/quota?authuser=${authuser}`)
             .then(response => response.text())
             .then(textResult => textResult.match(/(\d+)/).shift() / 3600)
             .then(remainingHours => {
                  var message = `Cloud Quota checked. Hours remaining: ${remainingHours.toFixed(1)}`;
                  console.log(message);
-                 if (remainingHours < 5) { alert(message); }
+                 if (remainingHours < 5) {
+                     alert(message);
+                 }
              });
-    };
+    }
 
-    setInterval(checkTime, 1000 * 60 * 30); // every 30mins
     checkTime();
+    setInterval(checkTime, 1000 * 60 * 30); // every 30mins
 })();
