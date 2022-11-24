@@ -13,27 +13,24 @@
     <table border='1'>
         <tr><th>#</th><th>Name</th><th>Games</th><th>Wins</th><th>Win%</th><th>Points</th></tr>
     </table>
-    [<a href='https://github.com/madmaxmatze/bball' target='_blank'>code</a>]
+    [<a href='https://github.com/madmaxmatze/code/tree/main/bball' target='_blank'>code</a>]
 </body>
 </html>
 
 <script>
-function getLeagueId() {
-    return parseInt((new URLSearchParams(location.search)).get('id')) || 38428;
+async function getDataSource() {
+    return /* proxyUrl */ "https://api.codetabs.com/v1/proxy/?quest=" +
+           /* dataUrl  */ "https://www.basketball-bund.net/rest/competition/crosstable/id/" +
+           /* leagueID */ parseInt((new URLSearchParams(location.search)).get('id') || 38428);
 }
 
-async function loadData(leagueID) {
-    var json = JSON.parse(localStorage.getItem('basketballData' + leagueID));
-    if (json && (new Date() - new Date(json.timestamp)) < 10 * 60 * 1000) {
-        return json.data;
+async function loadData(dataSourceUrl) {
+    var json = JSON.parse(localStorage.getItem(dataSourceUrl));
+    if (!json || (new Date() - new Date(json.timestamp)) > 10 * 60 * 1000) {
+        json = await fetch(dataSourceUrl).then(response => response.json());
+        if (json.data) {localStorage.setItem(dataSourceUrl, JSON.stringify(json));}
     }
-
-    return fetch('https://api.codetabs.com/v1/proxy/?quest=https://www.basketball-bund.net/rest/competition/crosstable/id/' + leagueID) // CORS proxy: https://codetabs.com/cors-proxy/cors-proxy.html
-        .then(response => response.json())
-        .then(json => {
-            localStorage.setItem('basketballData' + leagueID, JSON.stringify(json));
-            return json.data;
-        });
+    return json.data;
 }
 
 function processData(data) {
@@ -56,9 +53,9 @@ function processData(data) {
                     guestTeam.games++;
                     guestTeam.pointsHome += guestResult;
                     guestTeam.pointsGuest += homeResult;
-                    var [winningTeam, loosingTeam] = [homeTeam, guestTeam].sort(() => homeResult - guestResult);
+                    var winningTeam = (homeResult > guestResult ? homeTeam : guestTeam);
                     winningTeam.wins++;
-                    winningTeam.comments[winningTeam.comments.length - 1] += " >> WIN";
+                    winningTeam.comments.splice(-1, 1, comment + " >> WIN");
                 }
             })
         )
@@ -89,7 +86,8 @@ function handleErrors(error) {
     document.querySelector("table").outerHTML = "<h2 style='color:red'>ERROR occured</h2>";
 }
 
-loadData(getLeagueId())
+getDataSource()
+    .then(loadData)
     .then(processData)
     .then(outputData)
     .catch(handleErrors);
