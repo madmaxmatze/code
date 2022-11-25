@@ -18,19 +18,15 @@
 </html>
 
 <script>
-async function getDataSource() {
-    return /* proxyUrl */ "https://api.codetabs.com/v1/proxy/?quest=" +
-           /* dataUrl  */ "https://www.basketball-bund.net/rest/competition/crosstable/id/" +
-           /* leagueID */ parseInt((new URLSearchParams(location.search)).get('id') || 38428);
+async function getDataUrl() {
+    return /*proxyUrl  */ "https://api.codetabs.com/v1/proxy/?quest="
+           /*dataUrl   */ + "https://www.basketball-bund.net/rest/competition/crosstable/id/"
+           /*leagueID  */ + parseInt((new URLSearchParams(location.search)).get('id') || 38428)
+           /*10minCache*/ + "?cache=" + Math.round(Date.now() / 1000 / 60 / 10);
 }
 
-async function loadData(dataSourceUrl) {
-    var json = JSON.parse(localStorage.getItem(dataSourceUrl));
-    if (!json || (new Date() - new Date(json.timestamp)) > 10 * 60 * 1000) {
-        json = await fetch(dataSourceUrl).then(response => response.json());
-        if (json.data) {localStorage.setItem(dataSourceUrl, JSON.stringify(json));}
-    }
-    return json.data;
+async function loadData(dataUrl) {
+    return await fetch(dataUrl, {cache: 'force-cache'}).then(response => response.json()).then(json => json.data);
 }
 
 function processData(data) {
@@ -67,7 +63,7 @@ function processData(data) {
     return data;
 }
 
-function outputData(data) {
+function displayData(data) {
     document.querySelector("h1").innerHTML = `<a href='https://www.basketball-bund.net/static/#/liga/${data.ligaData.ligaId}/kreuztabelle'>${data.ligaData.liganame} - ${data.ligaData.seasonName}</a>`;
     data.tabelle.forEach((team, i) => {
         document.querySelector("table").innerHTML += `<tr data-clubId='${team.info.clubId}'>
@@ -86,9 +82,9 @@ function handleErrors(error) {
     document.querySelector("table").outerHTML = "<h2 style='color:red'>ERROR occured</h2>";
 }
 
-getDataSource()
+getDataUrl()
     .then(loadData)
     .then(processData)
-    .then(outputData)
+    .then(displayData)
     .catch(handleErrors);
 </script>
