@@ -1,90 +1,88 @@
-<html>
+<!DOCTYPE html><html>
 <head>
-    <style>
-        table {width: 100%; font-size: min(2.5vw, 22px); border-collapse: collapse; margin-bottom: 20px;}
-        table tr td {text-align: center;}
-        tr[data-clubId="1442"/* TuS Neukölln */] {background: #ffff80;}
-        span {color: gray;}
-        @media (min-width: 1000px) {table {max-width: 900px;}}
-    </style>
+<style>
+    table {width: 100%; font-size: min(2.5vw, 22px); border-collapse: collapse; margin-bottom: 20px;}
+    table tr td {text-align: center;}
+    tr[data-clubId="1442"/* TuS Neukölln */] {background: #ffff80;}
+    span {color: gray;}
+    @media (min-width: 1000px) {table {max-width: 900px;}}
+</style>
+<script>
+    getDataUrl = async () => (
+        /* CORSproxy */ "https://api.codetabs.com/v1/proxy/?quest=" +
+        /* leagueUrl */ "https://www.basketball-bund.net/rest/competition/crosstable/id/" +
+        /* leagueID  */ parseInt((new URLSearchParams(location.search)).get('id') || 38428) +
+        /* caching   */ "?10minCacheInvalidation=" + Math.round(Date.now() / 1000 / 60 / 10)
+    );
+
+    loadData = async (dataUrl) => (
+        await fetch(dataUrl, {"cache": "force-cache"}).then(response => response.json()).then(json =>json.data)
+    );
+
+    processData = (data) => ({...data,
+        "tabelle": data.kreuztabelle.crossTableEntries
+            .reduce((teamsArray, item) => {
+                teamsArray[item.team.seasonTeamId] = {matches:item.matches, info:item.team, games:0, wins:0, pointsHome:0, pointsGuest:0, comments:[]};
+                return teamsArray;
+            }, [])
+            .filter((homeTeam, _index, teamsArray) => 
+                homeTeam.matches.filter(match => match).flat().filter(match => {
+                    var guestTeam = teamsArray[match.guestTeam.seasonTeamId];
+                    var comment = `${match.kickoffDate} | ${homeTeam.info.teamnameSmall} ${match.result || "__:__"} ${guestTeam.info.teamnameSmall}`;
+                    homeTeam.comments.push(comment);
+                    guestTeam.comments.push(comment);
+                    if (match.result) {
+                        var [homeResult, guestResult] = match.result.split(':').map(Number);
+                        homeTeam.games++;
+                        homeTeam.pointsHome += homeResult;
+                        homeTeam.pointsGuest += guestResult;
+                        guestTeam.games++;
+                        guestTeam.pointsHome += guestResult;
+                        guestTeam.pointsGuest += homeResult;
+                        var winningTeam = (homeResult > guestResult ? homeTeam : guestTeam);
+                        winningTeam.wins++;
+                        winningTeam.comments.splice(-1, 1, comment + " >> WIN");
+                    }
+                })
+            )
+            .filter(team => Object.assign(team, {
+                perc: Math.round(team.games ? team.wins / team.games * 100 : 0),
+                pointsDiff: team.pointsHome - team.pointsGuest
+            }))
+            .sort((teamA, teamB) => teamB.perc - teamA.perc || teamB.pointsDiff - teamA.pointsDiff)
+    });
+
+    displayData = (data) => {
+        document.querySelector("h1").innerHTML = `<a href='https://www.basketball-bund.net/static/#/liga/${data.ligaData.ligaId}/kreuztabelle'>${data.ligaData.liganame} - ${data.ligaData.seasonName}</a>`;
+        data.tabelle.forEach((team, i) => {
+            document.querySelector("table").innerHTML += `<tr data-clubId='${team.info.clubId}'>
+                <th>${i + 1}</th>
+                <td>${team.info.teamname}</td>
+                <td>${team.games}</td>
+                <td>${team.wins}</td>
+                <td>${team.perc}%</td>
+                <td title='${team.comments.sort().join("\n")}'>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.pointsHome}:${team.pointsGuest})</span></td>
+            </tr>`;
+        });
+    };
+
+    handleErrors = (error) => {
+        console.error(error);
+        document.querySelector("table").outerHTML = "<h2 style='color:red'>ERROR occured</h2>";
+    };
+
+    getDataUrl()
+        .then(loadData)
+        .then(processData)
+        .then(displayData)
+        .catch(handleErrors);
+</script>
 <head>
 <body>
-    <h1>Loading...</h1> 
+    <h1>Loading...</h1>
     <table border='1'>
         <tr><th>#</th><th>Name</th><th>Games</th><th>Wins</th><th>Win%</th><th>Points</th></tr>
     </table>
     [<a href='https://github.com/madmaxmatze/code/tree/main/bball' target='_blank'>code</a>]
 </body>
 </html>
-
-<script>
-async function getDataUrl() {
-    return /*proxyUrl  */ "https://api.codetabs.com/v1/proxy/?quest="
-           /*dataUrl   */ + "https://www.basketball-bund.net/rest/competition/crosstable/id/"
-           /*leagueID  */ + parseInt((new URLSearchParams(location.search)).get('id') || 38428)
-           /*10minCache*/ + "?cache=" + Math.round(Date.now() / 1000 / 60 / 10);
-}
-
-async function loadData(dataUrl) {
-    return await fetch(dataUrl, {cache: 'force-cache'}).then(response => response.json()).then(json => json.data);
-}
-
-function processData(data) {
-    data.tabelle = data.kreuztabelle.crossTableEntries
-        .reduce((teamsArray, item) => {
-            teamsArray[item.team.seasonTeamId] = {matches:item.matches, info:item.team, games:0, wins:0, pointsHome:0, pointsGuest:0, comments:[]};
-            return teamsArray;
-        }, [])
-        .filter((homeTeam, _index, teamsArray) => 
-            homeTeam.matches.filter(match => match).flat().filter(match => {
-                var guestTeam = teamsArray[match.guestTeam.seasonTeamId];
-                var comment = `${match.kickoffDate} | ${homeTeam.info.teamnameSmall} ${match.result || "__:__"} ${guestTeam.info.teamnameSmall}`;
-                homeTeam.comments.push(comment);
-                guestTeam.comments.push(comment);
-                if (match.result) {
-                    var [homeResult, guestResult] = match.result.split(':').map(Number);
-                    homeTeam.games++;
-                    homeTeam.pointsHome += homeResult;
-                    homeTeam.pointsGuest += guestResult;
-                    guestTeam.games++;
-                    guestTeam.pointsHome += guestResult;
-                    guestTeam.pointsGuest += homeResult;
-                    var winningTeam = (homeResult > guestResult ? homeTeam : guestTeam);
-                    winningTeam.wins++;
-                    winningTeam.comments.splice(-1, 1, comment + " >> WIN");
-                }
-            })
-        )
-        .filter(team => Object.assign(team, {
-            perc: Math.round(team.games ? team.wins / team.games * 100 : 0),
-            pointsDiff: team.pointsHome - team.pointsGuest
-        }))
-        .sort((teamA, teamB) => teamB.perc - teamA.perc || teamB.pointsDiff - teamA.pointsDiff);
-    return data;
-}
-
-function displayData(data) {
-    document.querySelector("h1").innerHTML = `<a href='https://www.basketball-bund.net/static/#/liga/${data.ligaData.ligaId}/kreuztabelle'>${data.ligaData.liganame} - ${data.ligaData.seasonName}</a>`;
-    data.tabelle.forEach((team, i) => {
-        document.querySelector("table").innerHTML += `<tr data-clubId='${team.info.clubId}'>
-            <th>${i + 1}</th>
-            <td>${team.info.teamname}</td>
-            <td>${team.games}</td>
-            <td>${team.wins}</td>
-            <td>${team.perc}%</td>
-            <td title='${team.comments.sort().join("\n")}'>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.pointsHome}:${team.pointsGuest})</span></td>
-        </tr>`;
-    });
-}
-
-function handleErrors(error) {
-    console.error(error);
-    document.querySelector("table").outerHTML = "<h2 style='color:red'>ERROR occured</h2>";
-}
-
-getDataUrl()
-    .then(loadData)
-    .then(processData)
-    .then(displayData)
-    .catch(handleErrors);
-</script>
