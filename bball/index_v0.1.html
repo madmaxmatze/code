@@ -1,0 +1,111 @@
+<script>
+async function loadData (leagueID) {
+	var cacheId = 'basketballData' + leagueID;
+	var storedData = localStorage.getItem(cacheId);
+	if (storedData) {
+		storedData = JSON.parse(storedData);
+		var ageInSecs = (new Date() - new Date(storedData.timestamp)) / 1000;
+		if (ageInSecs > 3600) {
+			localStorage.removeItem(cacheId);
+		}
+	}
+
+	if (!storedData) {
+		var response = await fetch('https://api.codetabs.com/v1/proxy/?quest=https://www.basketball-bund.net/rest/competition/crosstable/id/' + leagueID); 	// CORS proxy
+		storedData = await response.json();
+		localStorage.setItem(cacheId, JSON.stringify(storedData));
+	}
+
+	return storedData;
+}
+
+function initTableForTeam(table, team) {
+	if (!table[team.seasonTeamId]) {
+		table[team.seasonTeamId] = {
+			'team' : team,
+			'games' : 0,
+			'wins' : 0,
+			'pointsHome' : 0,
+			'pointsGuest' : 0
+		};
+	}
+	return table;
+}
+
+function process (data) {
+	var table = {};
+
+	for (const item of data.data.kreuztabelle.crossTableEntries) {
+		var homeTeam = item.team;
+		initTableForTeam(table, homeTeam);
+		for (const match of item.matches) {
+			if (match && match[0] && match[0].result) {
+				var [homeResult, guestResult] = match[0].result.split(':');
+				homeResult = parseInt(homeResult);
+				guestResult = parseInt(guestResult);
+				var guestTeam = match[0].guestTeam;
+				initTableForTeam(table, guestTeam);
+				
+				table[homeTeam.seasonTeamId].games += 1;
+				table[guestTeam.seasonTeamId].games += 1;
+
+				table[homeTeam.seasonTeamId].pointsHome += homeResult;
+				table[homeTeam.seasonTeamId].pointsGuest += guestResult;
+
+				table[guestTeam.seasonTeamId].pointsHome += guestResult;
+				table[guestTeam.seasonTeamId].pointsGuest += homeResult;
+
+				table[homeResult > guestResult ? homeTeam.seasonTeamId : guestTeam.seasonTeamId].wins++;
+			}
+		}
+	}
+
+	table = Object.values(table);
+	table = table.map(function (val, key, arr) {
+		val.percent = val.wins / val.games;
+	  	val.pointsDiff = val.pointsHome - val.pointsGuest;
+		return val;
+	});
+
+	return table;
+}
+
+function sortTable(a, b) {
+	if (a.percent !== b.percent) {
+	    return a.percent - b.percent;
+  	}
+	if (a.pointsDiff !== b.pointsDiff) {
+    	return a.pointsDiff - b.pointsDiff;
+  	} 
+ 	return 0;
+}
+
+function renderTable(table){
+	var rowsHTML = "";
+	
+	table.forEach(function (value, index) {
+		rowsHTML += "<tr>" +
+				"<th>" + (index + 1) + "</th>" +
+				"<td>" + value.team.teamname +"</td>" + 
+				"<td>" + value.wins + "</td>" + 
+				"<td>" + value.games + "</td>" + 
+				"<td>" + Math.round(value.percent * 100) + "%</td>" + 
+				"<td>" + value.pointsHome + ":" + value.pointsGuest + "</td>" + 
+			"</tr>";
+	});
+
+	document.write("<table border='1'>" +
+		"<tr><th>#</th><th>Name</th><th>Wins</th><th>Games</th><th>Perc</th><th>Points</th></tr>" +
+		rowsHTML +
+	"</table>");
+}
+
+const app = async () => {
+	var leagueID = (new URLSearchParams(window.location.search)).get('id') || 38428;
+	var data = await loadData(leagueID);
+	var table = process(data).sort(sortTable).reverse();
+	renderTable(table);
+}
+
+app();
+</script>
