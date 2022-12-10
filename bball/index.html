@@ -12,7 +12,7 @@
     /* CORSproxy */ "https://api.codetabs.com/v1/proxy/?quest=" +
     /* leagueUrl */ "https://www.basketball-bund.net/rest/competition/crosstable/id/" +
     /* leagueID  */ parseInt((new URLSearchParams(location.search)).get('id') || 38428) +
-    /* caching   */ "?10minCacheInvalidation=" + Math.round(Date.now() / 1000 / 60 / 10)
+    /* caching   */ "?cacheInvalidation=" + Math.round(Date.now() / 1000 / 60 / 10/*min*/)
   );
 
   const loadData = async (dataUrl) => (
@@ -24,7 +24,7 @@
       .filter(team => (data[team.team.seasonTeamId] = team)) /* create teamIndex */
       .map(team => Object.assign(team, {games:0, wins:0, points:0, pointsOpponent:0, comments:[]}))
       .filter(homeTeam =>
-        homeTeam.matches.filter(match => match).flat().filter(match => 
+        homeTeam.matches.filter(Boolean).flat().filter(match => 
           [homeTeam, data[match.guestTeam.seasonTeamId]].forEach((team, index, teams) => {
             [team.gamePoints, team.gamePointsOpponent] = (match.result || "0:0").split(':').map(Number).sort(() => -index);
             team.points += team.gamePoints;
@@ -56,16 +56,16 @@
     });
   };
 
-  const handleErrors = (error) => {
-    console.error(error);
+  const handleError = (error) => {
     document.querySelector("table").outerHTML = "<h2 style='color:red'>ERROR occured</h2>";
+    throw error;
   };
 
   getDataUrl()
     .then(loadData)
     .then(processData)
     .then(displayData)
-    .catch(handleErrors);
+    .catch(handleError);
 </script>
 <head>
 <body>
