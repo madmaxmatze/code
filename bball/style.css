@@ -1,0 +1,61 @@
+.error {
+  color: red;
+}
+table {
+  font-family: sans-serif;
+  width: 100%;
+  font-size: min(2.3vw, 20px); 
+  border-collapse: collapse; 
+  margin-bottom: 20px;
+}
+td, th {
+  border: 1px solid #333;
+  text-align: center;
+}
+table tbody:first-child th {
+  padding: 3px;
+  background: black; 
+  color: white;
+}
+tr[data-clubId="1442"/* =TuS Neukölln */] {
+  background: #ffff80;
+}
+tr[data-disabled=true] {
+  color: lightgray !important;
+}
+tr[data-disabled=false] span {
+  color: gray;
+}
+
+@media (min-width: 1000px) {
+  table {
+    max-width: 900px;
+  }
+}
+
+/* "title for mobile" from https://stackoverflow.com/a/60660207/1066081 */
+[data-title] {
+  position: relative;
+}
+[data-title]:active,
+[data-title]:hover {
+  background-color: #eee;
+}
+[data-title]:active:after,
+[data-title]:hover:after {
+  content: attr(data-title); 
+  white-space: pre; 
+  position: absolute; 
+  z-index: 2; 
+  top: 98%; 
+  right: 1px; 
+  text-align: left;
+  color: #000; 
+  background-color: #eee; 
+  border: 1px solid; 
+  font-family: monospace; 
+  font-weight: normal; 
+  width: fit-content; 
+  padding: 5px; 
+  font-size: 80%;
+}
