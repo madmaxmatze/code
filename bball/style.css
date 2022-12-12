@@ -4,8 +4,8 @@
 table {
   font-family: sans-serif;
   width: 100%;
-  font-size: min(2.3vw, 20px); 
-  border-collapse: collapse; 
+  font-size: min(2.3vw, 20px);
+  border-collapse: collapse;
   margin-bottom: 20px;
 }
 td, th {
@@ -28,8 +28,11 @@ tr[data-disabled=false] span {
 }
 
 @media (min-width: 1000px) {
-  table {
+  * {
     user-select: none;
+    -webkit-user-select: none;
+  }
+  table {
     max-width: 900px;
   }
 }
@@ -40,21 +43,25 @@ tr[data-disabled=false] span {
   position: relative;
   background-color: #eee;
 }
+[data-info]:after {
+  content: attr(data-info);
+  white-space: pre;
+  position: absolute;
+  z-index: 2;
+  top: 98%;
+  right: 1px;
+  text-align: left;
+  color: #000;
+  background-color: inherit;
+  border: 1px solid;
+  font-family: monospace;
+  font-weight: normal;
+  width: fit-content;
+  padding: 5px;
+  font-size: 80%;
+  visibility: hidden; /*to avoid strange table reflows*/
+}
 [data-info]:active:after,
 [data-info]:hover:after {
-  content: attr(data-info); 
-  white-space: pre; 
-  position: absolute; 
-  z-index: 2; 
-  top: 98%; 
-  right: 1px; 
-  text-align: left;
-  color: #000; 
-  background-color: inherit; 
-  border: 1px solid; 
-  font-family: monospace; 
-  font-weight: normal; 
-  width: fit-content; 
-  padding: 5px; 
-  font-size: 80%;
+  visibility: visible;
 }
