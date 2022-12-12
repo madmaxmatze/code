@@ -1,82 +1,77 @@
-<!doctype html>
-<html>
-<head>
-  <link rel="stylesheet" href="style.css">
-  <script>
-    const dataUrl =
-      /* CORSproxy   */ "https://api.codetabs.com/v1/proxy/?quest=" +
-      /* leagueUrl   */ "https://www.basketball-bund.net/rest/competition/crosstable/id/" +
-      /* leagueID    */ parseInt((new URLSearchParams(location.search)).get("id") || 38428) +
-      /* 10min cache */ "?rand=" + Math.round(Date.now() / 1000 / 60 / 10);
+<!doctype html><html><head>
+  <title>BBall</title>
+  <link rel="stylesheet" href="style.css" />
+</head></html>
+<script>
+  const dataUrl =
+    /* CORSproxy   */ "https://api.codetabs.com/v1/proxy/?quest=" +
+    /* leagueUrl   */ "https://www.basketball-bund.net/rest/competition/crosstable/id/" +
+    /* leagueID    */ parseInt((new URLSearchParams(location.search)).get("id") || 38428) +
+    /* 10min cache */ "?rand=" + Math.round(Date.now() / 1000 / 60 / 10);
 
-    const loadData = async (dataUrl) => (
-      await fetch(dataUrl, {"cache": "force-cache"}).then(response => response.json()).then(json => json.data)
-    );
+  const loadData = async (dataUrl) => (
+    renderHtml(`<h1>Loading data...</h1>`),
+    await fetch(dataUrl, {"cache": "force-cache"}).then(response => response.json()).then(json => json.data)
+  );
 
-    const processData = (data) => (
-      Object.assign(data, {
-        "tabelle": data.kreuztabelle.crossTableEntries
-          .filter(team => (data[team.team.seasonTeamId] = team)) /* create teamIndex */
-          .map(team => Object.assign(team, {games:0, wins:0, points:0, pointsOpponent:0, info:[]}))
-          .filter(homeTeam =>
-            homeTeam.matches.filter(Boolean).flat().filter(match => 
-              [homeTeam, data[match.guestTeam.seasonTeamId]].forEach((team, index, teams) => {
-                [team.gamePoints, team.gamePointsOpponent] = (match.result || "0:0").split(":").map(Number).sort(() => -index);
-                team.points += team.gamePoints;
-                team.pointsOpponent += team.gamePointsOpponent;
-                team.games += Number(Boolean(match.result));
-                team.wins += Number(team.isWinner = (team.gamePoints > team.gamePointsOpponent));
-                team.info.push(`${match.kickoffDate} │ ${teams[0].team.teamnameSmall.padStart(5)} ${match.result ? teams[0].gamePoints.toString().padStart(3) : "___"}:${match.result ? teams[0].gamePointsOpponent.toString().padEnd(3) : "___"} ${teams[1].team.teamnameSmall.padEnd(5)} │ ${team.isWinner ? "WIN" : " - "}`);
-              })
-            )
+  const processData = (data) => (
+    Object.assign(data, {
+      "tabelle": data.kreuztabelle.crossTableEntries
+        .filter(team => (data[team.team.seasonTeamId] = team)) /* create teamIndex */
+        .map(team => Object.assign(team, {games:0, wins:0, points:0, pointsOpponent:0, info:[]}))
+        .filter(homeTeam =>
+          homeTeam.matches.filter(Boolean).flat().filter(match => 
+            [homeTeam, data[match.guestTeam.seasonTeamId]].forEach((team, index, teams) => {
+              [team.gamePoints, team.gamePointsOpponent] = (match.result || "0:0").split(":").map(Number).sort(() => -index);
+              team.points += team.gamePoints;
+              team.pointsOpponent += team.gamePointsOpponent;
+              team.games += Number(Boolean(match.result));
+              team.wins += Number(team.isWinner = (team.gamePoints > team.gamePointsOpponent));
+              team.info.push(`${match.kickoffDate} │ ${teams[0].team.teamnameSmall.padStart(5)} ${match.result ? teams[0].gamePoints.toString().padStart(3) : "___"}:${match.result ? teams[0].gamePointsOpponent.toString().padEnd(3) : "___"} ${teams[1].team.teamnameSmall.padEnd(5)} │ ${team.isWinner ? "WIN" : " - "}`);
+            })
           )
-          .filter(team => Object.assign(team, {
-            perc: Math.round(team.games ? team.wins / team.games * 100 : 0),
-            pointsDiff: team.points - team.pointsOpponent
-          }))
-          .sort((teamA, teamB) => teamB.perc - teamA.perc || teamB.pointsDiff - teamA.pointsDiff)
-      })
-    );
+        )
+        .filter(team => Object.assign(team, {
+          perc: Math.round(team.games ? team.wins / team.games * 100 : 0),
+          pointsDiff: team.points - team.pointsOpponent
+        }))
+        .sort((teamA, teamB) => teamB.perc - teamA.perc || teamB.pointsDiff - teamA.pointsDiff)
+    })
+  );
 
-    const generateHtml = (data) => (
-      `<h1>
-        <a href="https://www.basketball-bund.net/static/#/liga/${data.ligaData.ligaId}/kreuztabelle">
-          ${data.ligaData.liganame} - ${data.ligaData.seasonName}
-        </a>
-      </h1>
-      <table>
-        <tr><th>${"#,Team,Games,Wins,Win%,Points".replace(/,/g, "</th><th>")}</th></tr>
-        ${data.tabelle.map((team, i) =>
-          `<tr data-clubId="${team.team.clubId}" data-disabled="${team.info.length == team.games}" data-info="${team.info.sort().join("\n")}">
-            <th>${i + 1}</th>
-            <td>${team.team.teamname}</td>
-            <td>${team.games}</td>
-            <td>${team.wins}</td>
-            <td>${team.perc}%</td>
-            <td>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.points}:${team.pointsOpponent})</div></td>
-          </tr>`).join("")
-        }
-      </table>`
-    );
-    
-    const showHtml = (html) => (
-      document.body.firstElementChild.outerHTML = html
-    );
+  const generateHtml = (data) => (
+    `<h1>
+      <a href="https://www.basketball-bund.net/static/#/liga/${data.ligaData.ligaId}/kreuztabelle">
+        ${data.ligaData.liganame} - ${data.ligaData.seasonName}
+      </a>
+    </h1>
+    <table>
+      <tr><th>${"#,Team,Games,Wins,Win%,Points".replace(/,/g, "</th><th>")}</th></tr>
+      ${data.tabelle.map((team, i) =>
+        `<tr data-clubId="${team.team.clubId}" data-disabled="${team.info.length == team.games}" data-info="${team.info.sort().join("\n")}">
+          <th>${i + 1}</th>
+          <td>${team.team.teamname}</td>
+          <td>${team.games}</td>
+          <td>${team.wins}</td>
+          <td>${team.perc}%</td>
+          <td>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.points}:${team.pointsOpponent})</div></td>
+        </tr>`).join("")
+      }
+    </table>`
+  );
+  
+  const renderHtml = (html) => (
+    document.body.innerHTML = `${html}[<a href="https://github.com/madmaxmatze/code/tree/main/bball" target="_blank">code</a>]`
+  );
 
-    const handleError = (error) => {
-      showHtml(`<h1 class="error">ERROR while loading data</h1>`);
-      throw error;
-    };
+  const handleError = (error) => {
+    renderHtml(`<h1 class="error">ERROR while loading data</h1>`);
+    throw error;
+  };
 
-    loadData(dataUrl)
-      .then(processData)
-      .then(generateHtml)
-      .then(showHtml)
-      .catch(handleError);
-  </script>
-</head>
-<body>
-  <h1>Loading data...</h1>
-  [<a href="https://github.com/madmaxmatze/code/tree/main/bball" target="_blank">code</a>]  
-</body>
-</html>
+  loadData(dataUrl)
+    .then(processData)
+    .then(generateHtml)
+    .then(renderHtml)
+    .catch(handleError);
+</script>
