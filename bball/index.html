@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
   <link rel="stylesheet" href="style.css">
@@ -38,8 +38,8 @@
       })
     );
 
-    const generateHtml = (data) => (`
-      <h1>
+    const generateHtml = (data) => (
+      `<h1>
         <a href="https://www.basketball-bund.net/static/#/liga/${data.ligaData.ligaId}/kreuztabelle">
           ${data.ligaData.liganame} - ${data.ligaData.seasonName}
         </a>
@@ -47,7 +47,7 @@
       <table>
         <tr><th>${"#,Team,Games,Wins,Win%,Points".replace(/,/g, "</th><th>")}</th></tr>
         ${data.tabelle.map((team, i) =>
-          `<tr data-clubId="${team.team.clubId}" data-disabled=${team.info.length == team.games} data-title="${team.info.sort().join("\n")}">
+          `<tr data-clubId="${team.team.clubId}" data-disabled="${team.info.length == team.games}" data-info="${team.info.sort().join("\n")}">
             <th>${i + 1}</th>
             <td>${team.team.teamname}</td>
             <td>${team.games}</td>
@@ -56,12 +56,12 @@
             <td>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.points}:${team.pointsOpponent})</div></td>
           </tr>`).join("")
         }
-      </table>
-    `);
+      </table>`
+    );
     
-    const showHtml = (html) => {
-      document.body.firstElementChild.outerHTML = html;
-    };
+    const showHtml = (html) => (
+      document.body.firstElementChild.outerHTML = html
+    );
 
     const handleError = (error) => {
       showHtml(`<h1 class="error">ERROR while loading data</h1>`);
