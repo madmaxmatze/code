@@ -28,12 +28,15 @@ tr[data-disabled=false] span {
 }
 
 @media (min-width: 1000px) {
+  table {
+    max-width: 900px;
+  }
+}
+
+@media (pointer: coarse), (hover: none) {
   * {
     user-select: none;
     -webkit-user-select: none;
-  }
-  table {
-    max-width: 900px;
   }
 }
 
