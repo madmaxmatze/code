@@ -7,9 +7,9 @@
     renderHtml(`<h1>Loading data...</h1>`),
     await fetch(`${dataUrl}?10minsCacheBust=${~~(Date.now()/600000)}`, {"cache": "force-cache"})
       .then(response => response.json()).then(json => json.data)
-  ),
+  );
 
-  processData = (data) => (
+  const processData = (data) => (
     Object.assign(data, {
       "tabelle": data.kreuztabelle.crossTableEntries
         .filter(team => (data[`teamIndex${team.team.seasonTeamId}`] = team))
@@ -32,9 +32,9 @@
         }))
         .sort((teamA, teamB) => teamB.perc - teamA.perc || teamB.pointsDiff - teamA.pointsDiff)
     })
-  ),
+  );
 
-  generateHtml = (data) => (
+  const generateHtml = (data) => (
     `<h1>
       <a href="https://www.basketball-bund.net/static/#/liga/${data.ligaData.ligaId}/kreuztabelle">
         ${data.ligaData.liganame} - ${data.ligaData.seasonName}
@@ -53,20 +53,20 @@
         </tr>`).join("")
       }
     </table>`
-  ),
+  );
   
-  renderHtml = (html) => {
+  const renderHtml = (html) => {
     document.body.innerHTML = `${html}[<a href="https://github.com/madmaxmatze/code/tree/main/bball" target="_blank">code</a>]`;
-  },
+  };
 
-  handleError = (error) => {
+  const handleError = (error) => {
     renderHtml(`<h1 class="error">ERROR while loading data</h1>`);
     throw error;
-  },
+  };
 
-  corsProxyUrl = "https://api.codetabs.com/v1/proxy/?quest=",
-  leagueId = (~~(new URLSearchParams(location.search)).get("id") || 38428),
-  leagueUrl = `https://www.basketball-bund.net/rest/competition/crosstable/id/${leagueId}`;
+  const corsProxyUrl = "https://api.codetabs.com/v1/proxy/?quest=",
+        leagueId = (~~(new URLSearchParams(location.search)).get("id") || 38428),
+        leagueUrl = `https://www.basketball-bund.net/rest/competition/crosstable/id/${leagueId}`;
 
   loadData(corsProxyUrl + leagueUrl)
     .then(processData)
