@@ -1,15 +1,15 @@
 <!doctype html><html><head>
-  <title>BBall</title>
+  <link rel="shortcut icon" href="https://www.shareicon.net/download/32x32/2015/10/04/112139_orange_512x512.png" />
   <link rel="stylesheet" href="style.css" />
 </head></html>
 <script>
   const loadData = async (dataUrl) => (
     renderHtml(`<h1>Loading data...</h1>`),
-    await fetch(`${dataUrl}?10minsCacheBust=${~~(Date.now()/600000)}`, {"cache": "force-cache"})
-      .then(response => response.json()).then(json => json.data)
+    await fetch(`${dataUrl}?10minsCacheBust=${~~(Date.now()/600000)}`, {"cache": "force-cache"}).then(response => response.json()).then(json => json.data)
   );
 
   const processData = (data) => (
+    (document.title = data.ligaData.akName + " " + data.ligaData.skName),
     Object.assign(data, {
       "tabelle": data.kreuztabelle.crossTableEntries
         .filter(team => (data[`teamIndex${team.team.seasonTeamId}`] = team))
