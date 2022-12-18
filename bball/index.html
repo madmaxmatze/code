@@ -1,17 +1,15 @@
-<!doctype html><html><head>
-  <link rel="shortcut icon" href="https://www.shareicon.net/download/32x32/2015/10/04/112139_orange_512x512.png" />
-  <link rel="stylesheet" href="style.css" />
-</head></html>
+<!doctype html><html></html>
 <script>
   const loadData = async (dataUrl) => (
     renderHtml(`<h1>Loading data...</h1>`),
-    await fetch(`${dataUrl}?10minsCacheBust=${~~(Date.now()/600000)}`, {"cache": "force-cache"}).then(response => response.json()).then(json => json.data)
+    await fetch(`${dataUrl}?10minsCacheBust=${~~(Date.now()/600000)}`, {cache: "force-cache"})
+      .then(response => response.json())
+      .then(json => Object.assign(json.data, {domain: json.appContext}))
   );
 
   const processData = (data) => (
-    (document.title = data.ligaData.akName + " " + data.ligaData.skName),
     Object.assign(data, {
-      "tabelle": data.kreuztabelle.crossTableEntries
+      tabelle: data.kreuztabelle.crossTableEntries
         .filter(team => (data[`teamIndex${team.team.seasonTeamId}`] = team))
         .map(team => Object.assign(team, {games:0, wins:0, points:0, pointsOpponent:0, info:[]}))
         .filter(homeTeam =>
@@ -22,7 +20,7 @@
               team.pointsOpponent += team.gamePointsOpponent;
               team.games += Number(Boolean(match.result));
               team.wins += Number(team.isWinner = (team.gamePoints > team.gamePointsOpponent));
-              team.info.push(`${match.kickoffDate} │ ${teams[0].team.teamnameSmall.padStart(5)} ${match.result ? teams[0].gamePoints.toString().padStart(3) : "___"}:${match.result ? teams[0].gamePointsOpponent.toString().padEnd(3) : "___"} ${teams[1].team.teamnameSmall.padEnd(5)} │ ${team.isWinner ? "WIN" : " - "}`);
+              team.info.push(`${match.kickoffDate} │ ${teams[0].team.teamnameSmall.padStart(5)} ${match.result ? `${teams[0].gamePoints.toString().padStart(3)}:${teams[0].gamePointsOpponent.toString().padEnd(3)}` : "___:___"} ${teams[1].team.teamnameSmall.padEnd(5)} │ ${team.isWinner ? "WIN" : " - "}`);
             })
           )
         )
@@ -36,25 +34,30 @@
 
   const generateHtml = (data) => (
     `<h1>
-      <a href="https://www.basketball-bund.net/static/#/liga/${data.ligaData.ligaId}/kreuztabelle">
-        ${data.ligaData.liganame} - ${data.ligaData.seasonName}
-      </a>
+      <a href="${data.domain}/static/#/liga/${data.ligaData.ligaId}/kreuztabelle">${data.ligaData.liganame} - ${data.ligaData.seasonName}</a>
     </h1>
     <table>
       <tr><th>${"#,Team,Games,Wins,Win%,Points".replace(/,/g, "</th><th>")}</th></tr>
-      ${data.tabelle.map((team, i) =>
-        `<tr data-clubId="${team.team.clubId}" data-disabled="${team.info.length == team.games}" data-info="${team.info.sort().join("\n")}">
-          <th>${i + 1}</th>
+      ${data.tabelle.map(team =>
+        `<tr data-clubId="${team.team.clubId}" data-disabled=${team.info.length == team.games} data-info="${team.info.sort().join("\n")}">
+          <td />
           <td>${team.team.teamname}</td>
           <td>${team.games}</td>
           <td>${team.wins}</td>
           <td>${team.perc}%</td>
-          <td>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.points}:${team.pointsOpponent})</div></td>
+          <td>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.points}:${team.pointsOpponent})</span></td>
         </tr>`).join("")
       }
     </table>`
   );
   
+  const updateDocumentHead = (data) => (
+    (document.head.innerHTML = `<link rel="shortcut icon" href="${data.domain}/favicon.ico" />
+      <title>${data.ligaData.akName} ${data.ligaData.skName}</title>
+      <link rel="stylesheet" href="style.css" />`),
+    data
+  );
+
   const renderHtml = (html) => {
     document.body.innerHTML = `${html}[<a href="https://github.com/madmaxmatze/code/tree/main/bball" target="_blank">code</a>]`;
   };
@@ -70,6 +73,7 @@
 
   loadData(corsProxyUrl + leagueUrl)
     .then(processData)
+    .then(updateDocumentHead)
     .then(generateHtml)
     .then(renderHtml)
     .catch(handleError);
