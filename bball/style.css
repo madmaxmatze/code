@@ -22,6 +22,9 @@
   tr[data-clubId="1442"/* =TuS Neukölln */] {
     background: #ffff80 !important;
   }
+  td:nth-child(5):after {
+    content: "%";
+  }
   tr[data-disabled=true] {
     color: lightgray !important;
   }

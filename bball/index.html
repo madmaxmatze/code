@@ -1,61 +1,56 @@
-<!doctype html><html></html>
+<!doctype html><html><head><link rel="stylesheet" href="style.css" /></head></html>
 <script>
   const loadData = async (dataUrl) => (
     renderHtml(`<h1>Loading data...</h1>`),
-    await fetch(`${dataUrl}?10minsCacheBust=${~~(Date.now()/600000)}`, {cache: "force-cache"})
-      .then(response => response.json())
-      .then(json => Object.assign(json.data, {domain: json.appContext}))
+    await fetch(`${dataUrl}?10minsCacheBust=${~~(Date.now()/600000)}`, {cache: "force-cache"}).then(response => response.json())
+  );
+  
+  const updateDocumentHead = (data) => (
+    (document.head.innerHTML += `<link rel="shortcut icon" href="${data.appContext}/favicon.ico" />
+      <title>${data.meta = data.data.ligaData, data.meta.akName} ${data.meta.skName}</title>`),
+    data
   );
 
   const processData = (data) => (
     Object.assign(data, {
-      tabelle: data.kreuztabelle.crossTableEntries
-        .filter(team => (data[`teamIndex${team.team.seasonTeamId}`] = team))
-        .map(team => Object.assign(team, {games:0, wins:0, points:0, pointsOpponent:0, info:[]}))
+      table: data.data.kreuztabelle.crossTableEntries
+        .filter(team => (data["teamIndex" + team.team.seasonTeamId] = team))
+        .filter(team => Object.assign(team, {games:0, wins:0, points:0, pointsOpponent:0, info:[]}))
         .filter(homeTeam =>
           homeTeam.matches.filter(Boolean).flat().filter(match => 
-            [homeTeam, data[`teamIndex${match.guestTeam.seasonTeamId}`]].forEach((team, i, teams) => {
+            [homeTeam, data["teamIndex" + match.guestTeam.seasonTeamId]].forEach((team, i, teams) => {
               [team.gamePoints, team.gamePointsOpponent] = (match.result || "0:0").split(":").map(Number).sort(() => -i);
               team.points += team.gamePoints;
               team.pointsOpponent += team.gamePointsOpponent;
               team.games += Number(Boolean(match.result));
               team.wins += Number(team.isWinner = (team.gamePoints > team.gamePointsOpponent));
-              team.info.push(`${match.kickoffDate} │ ${teams[0].team.teamnameSmall.padStart(5)} ${match.result ? `${teams[0].gamePoints.toString().padStart(3)}:${teams[0].gamePointsOpponent.toString().padEnd(3)}` : "___:___"} ${teams[1].team.teamnameSmall.padEnd(5)} │ ${team.isWinner ? "WIN" : " - "}`);
+              team.info.push(`${match.kickoffDate} │ ${teams[0].team.teamnameSmall.padStart(5)} ` +
+                (match.result ? (""+teams[0].gamePoints).padStart(3) + (":"+teams[0].gamePointsOpponent).padEnd(4) : "___:___") +  
+                ` ${teams[1].team.teamnameSmall.padEnd(5)} │ ` + (team.isWinner ? "WIN" : " - "));
             })
           )
         )
         .filter(team => Object.assign(team, {
-          perc: ~~(team.games ? team.wins / team.games * 100 : 0),
-          pointsDiff: team.points - team.pointsOpponent
+          winsPerc: ~~(team.games ? team.wins / team.games * 100 : 0),
+          pointsDiff: team.points - team.pointsOpponent,
         }))
-        .sort((teamA, teamB) => teamB.perc - teamA.perc || teamB.pointsDiff - teamA.pointsDiff)
+        .sort((teamA, teamB) => teamB.winsPerc - teamA.winsPerc || teamB.pointsDiff - teamA.pointsDiff)
     })
   );
 
   const generateHtml = (data) => (
     `<h1>
-      <a href="${data.domain}/static/#/liga/${data.ligaData.ligaId}/kreuztabelle">${data.ligaData.liganame} - ${data.ligaData.seasonName}</a>
+      <a href="${data.appContext}/static/#/liga/${data.meta.ligaId}/kreuztabelle">${data.meta.liganame} - ${data.meta.seasonName}</a>
     </h1>
     <table>
       <tr><th>${"#,Team,Games,Wins,Win%,Points".replace(/,/g, "</th><th>")}</th></tr>
-      ${data.tabelle.map(team =>
-        `<tr data-clubId="${team.team.clubId}" data-disabled=${team.info.length == team.games} data-info="${team.info.sort().join("\n")}">
-          <td />
-          <td>${team.team.teamname}</td>
-          <td>${team.games}</td>
-          <td>${team.wins}</td>
-          <td>${team.perc}%</td>
+      ${data.table.map(team =>
+        `<tr data-clubId="${team.team.clubId}" data-disabled="${team.info.length == team.games}" data-info="${team.info.sort().join("\n")}">
+          <td>${["", team.team.teamname, team.games, team.wins, team.winsPerc].join("</td><td>")}</td>
           <td>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.points}:${team.pointsOpponent})</span></td>
         </tr>`).join("")
       }
     </table>`
-  );
-  
-  const updateDocumentHead = (data) => (
-    (document.head.innerHTML = `<link rel="shortcut icon" href="${data.domain}/favicon.ico" />
-      <title>${data.ligaData.akName} ${data.ligaData.skName}</title>
-      <link rel="stylesheet" href="style.css" />`),
-    data
   );
 
   const renderHtml = (html) => {
@@ -72,8 +67,8 @@
         leagueUrl = `https://www.basketball-bund.net/rest/competition/crosstable/id/${leagueId}`;
 
   loadData(corsProxyUrl + leagueUrl)
-    .then(processData)
     .then(updateDocumentHead)
+    .then(processData)
     .then(generateHtml)
     .then(renderHtml)
     .catch(handleError);
