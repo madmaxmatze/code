@@ -1,0 +1,73 @@
+<html>
+<div id="aufgabe"></div>
+
+<div id="ball"></div>
+
+<img id="maus" src="https://i.pinimg.com/originals/98/13/e3/9813e3a66ad93a85378e0de8e5b30ebc.gif">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<style>
+  img {
+   	position: absolute;
+	  transition: transform 0.3s;
+  }
+  img:hover {
+  	 transform: rotate(360deg) ;
+  }
+  html {
+    background: white;
+    color: black;
+    font-size: 4em;
+  }
+
+  #ball {
+    z-index: 10;
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background-size: 100%;
+    background-image: url(ball.png);
+  } 
+</style>
+
+<script type="text/javascript">
+$( "img" ).draggable();
+$( "img" ).click(function () {
+	var a = Math.round(Math.random() * 10);
+	var b = Math.round(Math.random() * 10);
+	$("#aufgabe").text(a + " + " + b + " = ");
+
+	setTimeout(function(){
+		$("#aufgabe").text($("#aufgabe").text() + (a+b))
+	}, 5000);
+});
+
+var diffX = 10;
+var diffY = 10;
+
+var moveBall = function(){
+  var position = $("#ball").position();
+  
+  if (position.left + 100 > $(window).width()) {
+    diffX = Math.abs(diffX) * -1;
+  } 
+  if (position.left < 0) {
+    diffX = Math.abs(diffX);
+  }
+  if (position.top + 100 > $(window).height()) {
+    diffY = Math.abs(diffY) * -1;
+  }
+  if (position.top < 0) {
+    diffY = Math.abs(diffY);
+  }
+  
+  $("#ball").css("top", position.top + diffY);
+  $("#ball").css("left", position.left + diffX);
+
+  setTimeout(moveBall, 50);
+};
+moveBall();
+
+</script>
+</html>

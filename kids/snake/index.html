@@ -1,0 +1,142 @@
+<html>
+<body>
+<canvas id="canvas" width="600" height="600"></canvas>
+<div id="score">0</div>
+
+<style>
+  html {
+    font-size: 4em;
+  }
+
+  #score {
+    position: absolute;
+    top: 10px;
+    left: 650px;
+    height: 150px;
+    text-align: center;
+    width: 100px;
+    border: 1px solid gray;
+    background-size: 70%;
+    background-image: url(raupe.png);
+    background-repeat: no-repeat;
+    background-position: center 70px ;
+  }
+
+  #canvas {
+    border: 1px solid gray;
+    position: absolute;
+  }
+</style>
+
+<script type="text/javascript">
+var snake = [];
+var foods = [];
+var s = 40;
+
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+var width = canvas.width;
+var height = canvas.height;
+
+var size = Math.floor(width / s);
+
+var headX = 0;
+var headY = 0;
+var dX = 1;
+var dY = 0;
+var snakeLength = 5;
+
+var foodImages = [];
+for (i = 0; i < 5; i++) {
+  foodImages[i] = new Image(s, s); 
+  foodImages[i].src = i + '.png';
+}
+
+var snakeImage = new Image(s, s); 
+snakeImage.src = 'raupe.png';
+
+var screamAudio = new Audio('scream.mp3');
+
+var moveSnake = function(){
+  headX += dX;
+  headY += dY;
+ 
+  if (headX > width / s - 1) {
+    headX = 0;
+  } else if (headX < 0) {
+    headX = width / s - 1;
+  }
+
+  if (headY > height / s - 1) {
+    headY = 0;
+  } else if (headY < 0) {
+    headY = height / s - 1;
+  }
+
+  snake.unshift({x: headX, y: headY});
+  snake = snake.slice(0, snakeLength);
+
+  ctx.clearRect(0, 0, width, height);
+ 
+  snake.forEach((item, index) => {
+    if (index) {
+      ctx.fillStyle = "green";
+      ctx.beginPath();
+      ctx.arc(item.x * s + s/2, item.y * s + s/2, s / 2, 0, 2 * Math.PI);
+      ctx.fill();
+    } else {
+      ctx.drawImage(snakeImage, item.x * s, item.y * s, s, s);
+    
+      var isEatingTail = snake.slice(1, snakeLength).some((element) => {
+          return element.x == snake[0].x && element.y == snake[0].y;
+      });
+      if (isEatingTail) {
+        screamAudio.play();
+      }
+    }
+  });
+
+  foods.forEach((item, index) => {
+    if (item.x == headX && item.y == headY) {
+      var eatAudio = new Audio('eat.mp3');
+      eatAudio.play();
+      foods.splice(index, 1);
+      snakeLength += 1;
+      var scoreEl = document.getElementById("score");
+      scoreEl.innerHTML = Number(scoreEl.innerHTML) + 1;
+    } else {
+      ctx.drawImage(foodImages[item.type], item.x * s, item.y * s, s, s);
+    }
+  });
+
+  setTimeout(moveSnake, Math.max(50, 250 - snakeLength * 5));
+};
+moveSnake();
+
+
+var addFood = function(){
+  foods.push({
+    x : Math.round(Math.random() * size),
+    y: Math.round(Math.random() * size),
+    type : Math.floor(Math.random() * 5)
+  });
+  setTimeout(addFood, Math.round(Math.random() * 10000));
+};
+addFood();
+
+
+document.onkeydown = function (e) {
+  e = e || window.event;
+  if ("upKey" && e.keyCode == '38' && dY == 0) {
+    dY = -1; dX = 0;
+  } else if ("downKey" && e.keyCode == '40' && dY == 0) {
+    dY = 1; dX = 0;
+  } else if ("leftKey" && e.keyCode == '37' && dX == 0) {
+    dX = -1; dY = 0;
+  } else if ("rightKey" && e.keyCode == '39' && dX == 0) {
+    dX = 1; dY = 0;
+  } 
+}
+</script>
+</body>
+</html>
