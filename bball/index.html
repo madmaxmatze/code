@@ -1,14 +1,8 @@
 <!doctype html><html><head><link rel="stylesheet" href="style.css" /></head></html>
 <script>
 const loadData = async (dataUrl) => (
-  renderHtml(`<h1>Loading data...</h1>`),
+  render(`<h1>Loading data...</h1>`),
   await fetch(`${dataUrl}?10minsCacheBust=${~~(Date.now()/600000)}`, {cache: "force-cache"}).then(response => response.json())
-);
-
-const updateDocumentHead = (data) => (
-  (document.head.innerHTML += `<link rel="shortcut icon" href="${data.appContext}/favicon.ico" />
-    <title>${data.meta = data.data.ligaData, data.meta.akName} ${data.meta.skName}</title>`),
-  data
 );
 
 const processData = (data) => (
@@ -22,43 +16,43 @@ const processData = (data) => (
             [team.gamePoints, team.gamePointsOpponent] = (match.result || "0:0").split(":").map(Number).sort(() => -i);
             team.points += team.gamePoints;
             team.pointsOpponent += team.gamePointsOpponent;
+            team.pointsDiff = team.points - team.pointsOpponent;
             team.games += Number(Boolean(match.result));
-            team.wins += Number(team.isWinner = (team.gamePoints > team.gamePointsOpponent));
+            team.wins += Number(team.isWinner = team.gamePoints > team.gamePointsOpponent);
+            team.winsPerc = (team.wins / team.games * 100) || 0;
             team.info.push(`${match.kickoffDate} │ ${teams[0].team.teamnameSmall.padStart(5)} ` +
               (match.result ? (""+teams[0].gamePoints).padStart(3) + (":"+teams[0].gamePointsOpponent).padEnd(4) : "___:___") +  
               ` ${teams[1].team.teamnameSmall.padEnd(5)} │ ` + (team.isWinner ? "WIN" : " - "));
           })
         )
       )
-      .filter(team => Object.assign(team, {
-        winsPerc: ~~(team.games ? team.wins / team.games * 100 : 0),
-        pointsDiff: team.points - team.pointsOpponent,
-      }))
       .sort((teamA, teamB) => teamB.winsPerc - teamA.winsPerc || teamB.pointsDiff - teamA.pointsDiff)
   })
 );
 
-const generateHtml = (data) => (
-  `<h1>
-    <a href="${data.appContext}/static/#/liga/${data.meta.ligaId}/kreuztabelle">${data.meta.liganame} - ${data.meta.seasonName}</a>
-  </h1>
-  <table>
-    <tr><th>${"#,Team,Games,Wins,Win%,Points".replace(/,/g, "</th><th>")}</th></tr>
-    ${data.table.map(team =>
-      `<tr data-clubId="${team.team.clubId}" data-disabled="${team.info.length == team.games}" data-info="${team.info.sort().join("\n")}">
-        <td>${["", team.team.teamname, team.games, team.wins, team.winsPerc].join("</td><td>")}</td>
-        <td>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.points}:${team.pointsOpponent})</span></td>
-      </tr>`).join("")
-    }
-  </table>`
-);
+const outputData = (data) => {
+  document.head.innerHTML += `<link rel="shortcut icon" href="${data.appContext}/favicon.ico" />
+                              <title>${data.meta = data.data.ligaData, data.meta.akName} ${data.meta.skName}</title>`;
+  render(`<h1>
+            <a href="${data.appContext}/static/#/liga/${data.meta.ligaId}/kreuztabelle">${data.meta.liganame} - ${data.meta.seasonName}</a>
+          </h1>
+          <table>
+            <tr><th>${"#,Team,Games,Wins,Win%,Points".replace(/,/g, "</th><th>")}</th></tr>
+            ${data.table.map(team =>
+              `<tr data-clubId="${team.team.clubId}" data-disabled="${team.info.length == team.games}" data-info="${team.info.sort().join("\n")}">
+                <td>${["", team.team.teamname, team.games, team.wins, ~~team.winsPerc].join("</td><td>")}</td>
+                <td>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.points}:${team.pointsOpponent})</span></td>
+              </tr>`).join("")
+            }
+          </table>`);
+};
 
-const renderHtml = (html) => {
+const render = (html) => {
   document.body.innerHTML = `${html}[<a href="https://github.com/madmaxmatze/code/tree/main/bball" target="_blank">code</a>]`;
 };
 
 const handleError = (error) => {
-  renderHtml(`<h1 class="error">ERROR while loading data</h1>`);
+  render(`<h1 class="error">ERROR while loading data</h1>`);
   throw error;
 };
 
@@ -67,9 +61,7 @@ const corsProxyUrl = "https://api.codetabs.com/v1/proxy/?quest=",
       leagueUrl = `https://www.basketball-bund.net/rest/competition/crosstable/id/${leagueId}`;
 
 loadData(corsProxyUrl + leagueUrl)
-  .then(updateDocumentHead)
   .then(processData)
-  .then(generateHtml)
-  .then(renderHtml)
+  .then(outputData)
   .catch(handleError);
 </script>
