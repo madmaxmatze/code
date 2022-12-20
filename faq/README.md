@@ -1,12 +1,14 @@
 # My FAQs
 
+Some notes and links...
+
 ## Github
 
 [Basic GitHub Auth](https://docs.github.com/en/get-started/quickstart/set-up-git#next-steps-authenticating-with-github-from-git)
 
 ```
-git config --global user.email "mathiasnitzsche@gmail.com"
-git config --global user.name "Mathias Nitzsche"
+git config --global user.email ".."
+git config --global user.name "..."
 ```
 
 ## Docker
