@@ -62,7 +62,7 @@ function process (data) {
 
 	table = Object.values(table);
 	table = table.map(function (val, key, arr) {
-		val.percent = val.wins / val.games;
+		val.percent = val.wins / val.games || 0;
 	  	val.pointsDiff = val.pointsHome - val.pointsGuest;
 		return val;
 	});
