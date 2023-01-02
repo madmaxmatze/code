@@ -1,10 +1,10 @@
-<!doctype html><html><head><link rel="stylesheet" href="style.css" /></head></html>
+<!doctype html><html></html>
 <script>
 const dataUrl = "https://api.codetabs.com/v1/proxy/?quest=" + /* corsProxy: */ 
-  `https://www.basketball-bund.net/rest/competition/crosstable/id/${~~(new URLSearchParams(location.search)).get("id") || 38428}`;
+  "https://www.basketball-bund.net/rest/competition/crosstable/id/" + (~~(new URLSearchParams(location.search)).get("id") || 38428);
 
 const loadData = async (dataUrl) => (
-  render(`<h1>Loading data...</h1>`),
+  render("<h1>Loading data...</h1>"),
   await fetch(`${dataUrl}?10minsCacheBust=${~~(Date.now()/600000)}`, {cache: "force-cache"}).then(response => response.json())
 );
 
@@ -14,7 +14,7 @@ const processData = (data) => (
       .filter(team => (data["teamIndex" + team.team.seasonTeamId] = team))
       .filter(team => Object.assign(team, {games:0, wins:0, points:0, pointsOpponent:0, info:[]}))
       .filter(homeTeam =>
-        homeTeam.matches.filter(Boolean).flat().filter(match => 
+        homeTeam.matches.filter(Boolean).filter(([match]) => 
           [homeTeam, data["teamIndex" + match.guestTeam.seasonTeamId]].forEach((team, i, teams) => {
             [team.gamePoints, team.gamePointsOpponent] = (match.result || "0:0").split(":").map(Number).sort(() => -i);
             team.points += team.gamePoints;
@@ -34,9 +34,10 @@ const processData = (data) => (
 );
 
 const outputData = (data) => {
-  document.head.innerHTML += `<link rel="shortcut icon" href="${data.appContext}/favicon.ico" />
-    <title>${data.meta = data.data.ligaData, data.meta.akName} ${data.meta.skName}</title>`;
-  render(`<h1><a href="${data.appContext}/static/#/liga/${data.meta.ligaId}/kreuztabelle">${data.meta.liganame} - ${data.meta.seasonName}</a></h1>
+  document.head.innerHTML = `<link rel="stylesheet" href="style.css" />
+    <link rel="shortcut icon" href="${data.appContext}/favicon.ico" />
+    <title>${data.data.akName} ${data.data.skName}</title>`;
+  render(`<h1><a href="${data.appContext}/static/#/liga/${data.data.ligaId}/kreuztabelle">${data.data.liganame} - ${data.data.seasonName}</a></h1>
     <table>
       <tr><th>${"#,Team,Games,Wins,Win%,Points".replace(/,/g, "</th><th>")}</th></tr>
       ${data.table.map(team =>
@@ -53,7 +54,7 @@ const render = (html) => {
 };
 
 const handleError = (error) => {
-  render(`<h1 class="error">ERROR while loading data</h1>`);
+  render(`<h1 style="color:red">ERROR while loading data</h1>`);
   throw error;
 };
 
