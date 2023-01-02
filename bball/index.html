@@ -34,10 +34,11 @@ const processData = (data) => (
 );
 
 const outputData = (data) => {
+  console.log (data);
   document.head.innerHTML = `<link rel="stylesheet" href="style.css" />
     <link rel="shortcut icon" href="${data.appContext}/favicon.ico" />
-    <title>${data.data.akName} ${data.data.skName}</title>`;
-  render(`<h1><a href="${data.appContext}/static/#/liga/${data.data.ligaId}/kreuztabelle">${data.data.liganame} - ${data.data.seasonName}</a></h1>
+    <title>${data.data.ligaData.akName} ${data.data.ligaData.skName}</title>`;
+  render(`<h1><a href="${data.appContext}/static/#/liga/${data.data.ligaData.ligaId}/kreuztabelle">${data.data.ligaData.liganame} - ${data.data.ligaData.seasonName}</a></h1>
     <table>
       <tr><th>${"#,Team,Games,Wins,Win%,Points".replace(/,/g, "</th><th>")}</th></tr>
       ${data.table.map(team =>
