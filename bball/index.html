@@ -1,6 +1,6 @@
 <!doctype html><html></html>
 <script>
-const dataUrl = "https://api.codetabs.com/v1/proxy/?quest=" + /* corsProxy: */ 
+const dataUrl = "https://api.codetabs.com/v1/proxy/?quest=" + /* <-- corsProxy */ 
   "https://www.basketball-bund.net/rest/competition/crosstable/id/" + (~~(new URLSearchParams(location.search)).get("id") || 38428);
 
 const loadData = async (dataUrl) => (
@@ -49,9 +49,9 @@ const outputData = (data) => {
     </table>`);
 };
 
-const render = (html) => {
-  document.body.innerHTML = `${html}[<a href="https://github.com/madmaxmatze/code/tree/main/bball" target="_blank">code</a>]`;
-};
+const render = (html) => (
+  document.body.innerHTML = `${html}[<a href="https://github.com/madmaxmatze/code/tree/main/bball" target="_blank">code</a>]`
+);
 
 const handleError = (error) => {
   render(`<h1 style="color:red">ERROR while loading data</h1>`);
