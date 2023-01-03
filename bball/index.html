@@ -9,42 +9,41 @@ const loadData = async (dataUrl) => (
 );
 
 const processData = (data) => (
-  Object.assign(data, {
-    table: data.data.kreuztabelle.crossTableEntries
-      .filter(team => (data.teams ??= {})[team.team.seasonTeamId] = Object.assign(team, {games:0, wins:0, points:0, pointsOpp:0, info:[]}))
-      .filter(homeTeam =>
-        homeTeam.matches.filter(Boolean).filter(([match]) => 
-          [homeTeam, data.teams[match.guestTeam.seasonTeamId]].forEach((team, i, teams) => {
-            [team.gamePoints, team.gamePointsOpp] = (match.result || "0:0").split(":").map(Number).sort(() => -i);
-            team.points += team.gamePoints;
-            team.pointsOpp += team.gamePointsOpp;
-            team.pointsDiff = team.points - team.pointsOpp;
-            team.games += Number(Boolean(match.result));
-            team.wins += Number(team.isWinner = team.gamePoints > team.gamePointsOpp);
-            team.winsPerc = (team.wins / team.games * 100) || 0;
-            team.info.push(`${match.kickoffDate} │ ${teams[0].team.teamnameSmall.padStart(5)} ` +
-              (match.result ? (""+teams[0].gamePoints).padStart(3) + (":"+teams[0].gamePointsOpp).padEnd(4) : "___:___") +  
-              ` ${teams[1].team.teamnameSmall.padEnd(5)} │ ` + (team.isWinner ? "WIN" : " - "));
-          })
-        )
+  Object.assign(data, {...data.data.ligaData}, {table: data.data.kreuztabelle.crossTableEntries
+    .filter(team => (data.teams ??= {})[team.team.seasonTeamId] = Object.assign(team, {games:0, wins:0, points:0, pointsOpp:0, info:[]}))
+    .filter(homeTeam =>
+      homeTeam.matches.filter(Boolean).filter(([match]) => 
+        [homeTeam, data.teams[match.guestTeam.seasonTeamId]].forEach((team, i, teams) => {
+          [team.gamePoints, team.gamePointsOpp] = (match.result || "0:0").split(":").map(Number).sort(() => -i);
+          team.points += team.gamePoints;
+          team.pointsOpp += team.gamePointsOpp;
+          team.pointsDiff = team.points - team.pointsOpp;
+          team.games += Number(Boolean(match.result));
+          team.wins += Number(team.isWinner = team.gamePoints > team.gamePointsOpp);
+          team.winsPerc = (team.wins / team.games * 100) || 0;
+          team.info.push(`${match.kickoffDate} │ ${teams[0].team.teamnameSmall.padStart(5)} ` +
+            (match.result ? (""+teams[0].gamePoints).padStart(3) + (":"+teams[0].gamePointsOpp).padEnd(4) : "___:___") +  
+            ` ${teams[1].team.teamnameSmall.padEnd(5)} │ ${team.isWinner ? "WIN" : " - "}`);
+        })
       )
-      .sort((teamA, teamB) => teamB.winsPerc - teamA.winsPerc || teamB.pointsDiff - teamA.pointsDiff)
+    )
+    .sort((teamA, teamB) => teamB.winsPerc - teamA.winsPerc || teamB.pointsDiff - teamA.pointsDiff),
   })
 );
 
 const outputData = (data) => {
   document.head.innerHTML = `<link rel="stylesheet" href="style.css" />
     <link rel="shortcut icon" href="${data.appContext}/favicon.ico" />
-    <title>${(l = data.data.ligaData).akName} ${l.skName}</title>`;
-  render(`<h1><a href="${data.appContext}/static/#/liga/${l.ligaId}/kreuztabelle">${l.liganame} - ${l.seasonName}</a></h1>
+    <title>${data.akName} ${data.skName}</title>`;
+  render(`<h1><a href="${data.appContext}/static/#/liga/${data.ligaId}/kreuztabelle">${data.akName} ${data.skName} - ${data.seasonName}</a></h1>
     <table>
       <tr><th>${"#,Team,Games,Wins,Win%,Points".replace(/,/g, "</th><th>")}</th></tr>
       ${data.table.map(team =>
         `<tr data-clubId="${team.team.clubId}" data-disabled="${team.info.length == team.games}" data-info="${team.info.sort().join("\n")}">
           <td>${["", team.team.teamname, team.games, team.wins, ~~team.winsPerc].join("</td><td>")}</td>
           <td>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.points}:${team.pointsOpp})</span></td>
-        </tr>`).join("")
-      }
+        </tr>`
+      ).join("")}
     </table>`);
 };
 
