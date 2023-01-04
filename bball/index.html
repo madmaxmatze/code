@@ -35,13 +35,12 @@ const outputData = (data) => {
     <title>${data.akName} ${data.skName}</title>`;
   render(`<h1><a href="${data.appContext}/static/#/liga/${data.ligaId}/kreuztabelle">${data.akName} ${data.skName} - ${data.seasonName}</a></h1>
     <table>
-      <tr><th>${"#,Team,Games,Wins,Win%,Points".replace(/,/g, "</th><th>")}</th></tr>
+      <tr><th>#</th><th>Team</th><th>Games</th><th>Wins</th><th>Win%</th><th>Points</th></tr>
       ${data.table.map(team =>
         `<tr data-clubId="${team.team.clubId}" data-disabled="${team.info.length == team.games}" data-info="${team.info.sort().join("\n")}">
-          <td>${["", team.team.teamname, team.games, team.wins, ~~team.winsPerc].join("</td><td>")}</td>
+          <td></td><td>${team.team.teamname}</td><td>${team.games}</td><td>${team.wins}</td><td>${~~team.winsPerc}</td>
           <td>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.points}:${team.pointsOpp})</span></td>
-        </tr>`
-      ).join("")}
+        </tr>`).join("")}
     </table>`);
 };
 
