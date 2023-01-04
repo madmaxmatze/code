@@ -15,15 +15,13 @@ const processData = (data) => (
       homeTeam.matches.filter(Boolean).filter(([match]) => 
         [homeTeam, data.teams[match.guestTeam.seasonTeamId]].forEach((team, i, teams) => {
           [team.gamePoints, team.gamePointsOpp] = (match.result || "0:0").split(":").map(Number).sort(() => -i);
-          team.points += team.gamePoints;
-          team.pointsOpp += team.gamePointsOpp;
-          team.pointsDiff = team.points - team.pointsOpp;
+          team.pointsDiff = (team.points += team.gamePoints) - (team.pointsOpp += team.gamePointsOpp);
           team.games += Number(Boolean(match.result));
-          team.wins += Number(team.isWinner = team.gamePoints > team.gamePointsOpp);
+          team.wins += Number(team.gamePoints > team.gamePointsOpp);
           team.winsPerc = (team.wins / team.games * 100) || 0;
           team.info.push(`${match.kickoffDate} │ ${teams[0].team.teamnameSmall.padStart(5)} ` +
             (match.result ? (""+teams[0].gamePoints).padStart(3) + (":"+teams[0].gamePointsOpp).padEnd(4) : "___:___") +  
-            ` ${teams[1].team.teamnameSmall.padEnd(5)} │ ${team.isWinner ? "WIN" : " - "}`);
+            ` ${teams[1].team.teamnameSmall.padEnd(5)} │ ${team.gamePoints > team.gamePointsOpp ? "WIN" : " - "}`);
         })
       )
     )
