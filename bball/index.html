@@ -1,8 +1,5 @@
 <!doctype html><html></html>
 <script>
-const dataUrl = "https://api.codetabs.com/v1/proxy/?quest=" + /* <-- corsProxy */ 
-  "https://www.basketball-bund.net/rest/competition/crosstable/id/" + (~~(new URLSearchParams(location.search)).get("id") || 38428);
-
 const loadData = async (dataUrl) => (
   render("<h1>Loading data...</h1>"),
   await fetch(`${dataUrl}?10minsCacheBust=${~~(Date.now()/600000)}`, {cache: "force-cache"}).then(response => response.json())
@@ -44,14 +41,17 @@ const outputData = (data) => {
     </table>`);
 };
 
-const render = (html) => (
-  document.body.innerHTML = `${html}[<a href="https://github.com/madmaxmatze/code/tree/main/bball" target="_blank">code</a>]`
-);
-
 const handleError = (error) => {
   render(`<h1 style="color:red">ERROR while loading data</h1>`);
   throw error;
 };
 
-loadData(dataUrl).then(processData).then(outputData).catch(handleError);
+const render = (html) => (
+  document.body.innerHTML = `${html}[<a href="https://github.com/madmaxmatze/code/tree/main/bball" target="_blank">code</a>]`
+);
+
+const corsProxy = "https://code.mathiasnitzsche.de/proxy?url=",
+      dataUrl = "https://www.basketball-bund.net/rest/competition/crosstable/id/" + (~~(new URLSearchParams(location.search)).get("id") || 38428);
+
+loadData(corsProxy + dataUrl).then(processData).then(outputData).catch(handleError);
 </script>

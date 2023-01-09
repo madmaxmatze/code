@@ -30,8 +30,12 @@ Connect to Pod in MiniCube
  also: `docker logs [CONTAINER_ID]`
 
 ## GCP
-List folder sizes: du -shc ~/* | sort -rh
-delete trash: sudo rm -rf /home/lost+found
+
+- during compilation `no space left on device`
+
+  List folder sizes: du -shc ~/* | sort -rh
+  
+  Delete trash: sudo rm -rf /home/lost+found
 
 ## Others
 Webpack / Npm
