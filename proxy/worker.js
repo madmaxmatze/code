@@ -25,7 +25,7 @@ const getUrlParam = async (fullRequestUrl/*:string*/) => {
 };
 
 const checkIfWhitelisted = async (url/*:URL*/) => {
-  if (!["www.basketball-bund.net"].includes(url.hostname)) {
+  if (!(DOMAIN_WHITELIST || "").split("|").includes(url.hostname)) {
     throw URIError("Domain not whitelisted");
   }
   return url.href;
