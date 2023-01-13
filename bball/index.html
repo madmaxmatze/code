@@ -1,12 +1,16 @@
 <!doctype html><html></html>
 <script>
-const loadData = async (dataUrl) => (
-  render("<h1>Loading data...</h1>"),
-  await fetch(`${dataUrl}?10minsCacheBust=${~~(Date.now()/600000)}`, {cache: "force-cache"}).then(response => response.json())
-);
+const dataUrl = "https://www.basketball-bund.net/rest/competition/crosstable/id/" + (~~(new URLSearchParams(location.search)).get("id") || 38428);
+proxyLoadData(dataUrl).then(processData).then(outputData).catch(handleError);
 
-const processData = (data) => (
-  Object.assign(data, {...data.data.ligaData}, {table: data.data.kreuztabelle.crossTableEntries
+async function proxyLoadData(dataUrl) {
+  render("<h1>Loading data...</h1>");
+  dataUrl = `https://code.mathiasnitzsche.de/proxy?url=${dataUrl}?10minsCacheBust=${~~(Date.now()/600000)}`;
+  return fetch(dataUrl, {cache: "force-cache"}).then(response => response.json());
+}
+
+function processData(data) {
+  return Object.assign(data, {...data.data.ligaData}, {table: data.data.kreuztabelle.crossTableEntries
     .filter(team => (data.teams ??= {})[team.team.seasonTeamId] = Object.assign(team, {games:0, wins:0, points:0, pointsOpp:0, info:[]}))
     .filter(homeTeam =>
       homeTeam.matches.filter(Boolean).filter(([match]) => 
@@ -21,12 +25,11 @@ const processData = (data) => (
             ` ${teams[1].team.teamnameSmall.padEnd(5)} │ ${team.gamePoints > team.gamePointsOpp ? "WIN" : " - "}`);
         })
       )
-    )
-    .sort((teamA, teamB) => teamB.winsPerc - teamA.winsPerc || teamB.pointsDiff - teamA.pointsDiff),
-  })
-);
+    ).sort((teamA, teamB) => teamB.winsPerc - teamA.winsPerc || teamB.pointsDiff - teamA.pointsDiff)
+  });
+}
 
-const outputData = (data) => {
+function outputData(data) {
   document.head.innerHTML = `<link rel="stylesheet" href="style.css" />
     <link rel="shortcut icon" href="${data.appContext}/favicon.ico" />
     <title>${data.akName} ${data.skName}</title>`;
@@ -39,19 +42,14 @@ const outputData = (data) => {
           <td>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.points}:${team.pointsOpp})</span></td>
         </tr>`).join("")}
     </table>`);
-};
+}
 
-const handleError = (error) => {
+function handleError(error) {
   render(`<h1 style="color:red">ERROR while loading data</h1>`);
   throw error;
-};
+}
 
-const render = (html) => (
-  document.body.innerHTML = `${html}[<a href="https://github.com/madmaxmatze/code/tree/main/bball" target="_blank">code</a>]`
-);
-
-const corsProxy = "https://code.mathiasnitzsche.de/proxy?url=",
-      dataUrl = "https://www.basketball-bund.net/rest/competition/crosstable/id/" + (~~(new URLSearchParams(location.search)).get("id") || 38428);
-
-loadData(corsProxy + dataUrl).then(processData).then(outputData).catch(handleError);
+function render(html) {
+  document.body.innerHTML = `${html}[<a href="https://github.com/madmaxmatze/code/tree/main/bball" target="_blank">code</a>]`;
+}
 </script>
