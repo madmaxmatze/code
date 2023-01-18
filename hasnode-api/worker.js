@@ -19,7 +19,6 @@ const handleRequest = async (url/*:string*/) => {
   if (match) {
     return fetchPosts(match[1]);
   }
-
   throw URIError("API call invalid");
 };
 
