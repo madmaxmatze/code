@@ -37,7 +37,7 @@ function outputData(data) {
     <table>
       <tr><th>#</th><th>Team</th><th>Games</th><th>Wins</th><th>Win%</th><th>Points</th></tr>
       ${data.table.map(team =>
-        `<tr data-clubId="${team.team.clubId}" data-disabled="${team.info.length == team.games}" data-info="${team.info.sort().join("\n")}">
+        `<tr data-clubId="${team.team.clubId}" data-disabled="${!team.games || team.info.length == team.games}" data-info="${team.info.sort().join("\n")}">
           <td></td><td>${team.team.teamname}</td><td>${team.games}</td><td>${team.wins}</td><td>${~~team.winsPerc}</td>
           <td>${("+"+team.pointsDiff).replace("+-", "-")} <span>(${team.points}:${team.pointsOpp})</span></td>
         </tr>`).join("")}
