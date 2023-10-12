@@ -15,7 +15,7 @@ function processData(data) {
     .filter(homeTeam =>
       homeTeam.matches.filter(Boolean).filter(([match]) => 
         [homeTeam, data.teams[match.guestTeam.seasonTeamId]].forEach((team, i, teams) => {
-          [team.gamePoints, team.gamePointsOpp] = (match.result || "0:0").split(":").map(Number).sort(() => -i);
+          [team.gamePoints, team.gamePointsOpp] = (resultArr => i ? resultArr.reverse() : resultArr)((match.result || "0:0").split(":").map(Number));
           team.pointsDiff = (team.points += team.gamePoints) - (team.pointsOpp += team.gamePointsOpp);
           team.games += Number(Boolean(match.result));
           team.wins += Number(team.gamePoints > team.gamePointsOpp);
