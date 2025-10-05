@@ -1,6 +1,6 @@
 <!doctype html><html></html>
 <script>
-const dataUrl = "https://www.basketball-bund.net/rest/competition/crosstable/id/" + (~~(new URLSearchParams(location.search)).get("id") || 41620);
+const dataUrl = "https://www.basketball-bund.net/rest/competition/crosstable/id/" + (~~(new URLSearchParams(location.search)).get("id") || 50421);
 proxyLoadData(dataUrl).then(processData).then(outputData).catch(handleError);
 
 async function proxyLoadData(dataUrl) {
