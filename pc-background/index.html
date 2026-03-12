@@ -29,9 +29,10 @@
         // Letzte X Monate inkl. aktuellen (1–12). Weniger Monate = größere Balken.
         monthsToShow: 12,
 
-        // Größe des gesamten Dashboards in Prozent (100 = aktuell, 120 = 20 % größer).
-        // Skaliert Box, Schrift und Charts proportional.
-        sizePercent: 100,
+        // Ziel-Höhe des Dashboards in Prozent der Fensterhöhe (z. B. 40 = ca. 40 % Bildschirmhöhe).
+        // Die tatsächliche Skalierung wird dynamisch berechnet, sodass das Panel auf verschiedenen
+        // Bildschirmen und DPI-Einstellungen optisch ähnlich groß wirkt.
+        sizePercent: 80,
       };
 
       function getDataSourceFromUrl() {
@@ -87,7 +88,7 @@
         position: fixed;
         top: 1.5rem;
         right: 1.5rem;
-        width: calc(min(40vw, 540px) * var(--dashboard-scale));
+        width: min(40vw, 540px);
         max-height: none;
         display: flex;
         justify-content: flex-end;
@@ -103,7 +104,8 @@
       #stats-panel {
         position: relative;
         width: min(40vw, 540px);
-        zoom: var(--dashboard-scale);
+        transform: scale(var(--dashboard-scale));
+        transform-origin: top right;
         /* etwas transparenter, damit der Hintergrund besser durchscheint */
         background: rgba(15, 23, 42, 0.45);
         border-radius: 16px;
@@ -367,6 +369,53 @@
         "#0891b2", // Zyan
         "#9f1239", // Weinrot
       ];
+      
+      /**
+       * Interpretiert CONFIG.sizePercent als „Ziel-Höhenanteil des Panels
+       * relativ zur Fensterhöhe“. Beispiel:
+       *   sizePercent = 40  → Panel soll ca. 40 % der Bildschirmhöhe einnehmen.
+       * Dazu wird die aktuelle Panel-Höhe gemessen und die CSS-Variable
+       * --dashboard-scale so gesetzt, dass diese Zielhöhe ungefähr erreicht wird.
+       */
+      function updatePanelScaleToHeight() {
+        const panel = document.getElementById("stats-panel");
+        if (!panel) return;
+
+        const percent = Number(CONFIG.sizePercent);
+        if (!Number.isFinite(percent) || percent <= 0) return;
+
+        const viewportHeight = window.innerHeight || 0;
+        if (viewportHeight <= 0) return;
+
+        const targetHeight = (percent / 100) * viewportHeight;
+        if (targetHeight <= 0) return;
+
+        const root = document.documentElement;
+        root.style.setProperty("--dashboard-scale", "1");
+
+        const rect = panel.getBoundingClientRect();
+        const currentHeight = rect.height || 0;
+        if (currentHeight <= 0) return;
+
+        let scale = targetHeight / currentHeight;
+        scale = Math.max(0.5, Math.min(2, scale));
+
+        root.style.setProperty("--dashboard-scale", String(scale));
+
+        // Nach der Skalierung Chart.js informieren, damit Hit-Tests (Tooltips)
+        // wieder zur sichtbaren Größe passen.
+        requestAnimationFrame(() => {
+          if (monthlyChartInstance) {
+            monthlyChartInstance.resize();
+          }
+          if (dailyChartInstance) {
+            dailyChartInstance.resize();
+          }
+          if (gamesChartInstance) {
+            gamesChartInstance.resize();
+          }
+        });
+      }
 
       function formatHours(value) {
         return Number(value || 0).toFixed(1);
@@ -1177,6 +1226,7 @@
             totalByAppThisMonth: {},
           };
           renderCharts(emptyAgg);
+          requestAnimationFrame(updatePanelScaleToHeight);
           return;
         }
         const agg = aggregate(events);
@@ -1186,6 +1236,7 @@
           );
           updateQuotaDisplay(0);
           renderCharts(agg);
+          requestAnimationFrame(updatePanelScaleToHeight);
           return;
         }
         console.info("Gefilterte Spiele-Einträge:", agg.matchedEvents);
@@ -1242,6 +1293,7 @@
         }
         updateQuotaDisplay(agg.totalHoursThisMonth);
         renderCharts(agg);
+        requestAnimationFrame(updatePanelScaleToHeight);
       }
 
       /**
@@ -1268,8 +1320,7 @@
       /** Start: Hintergrund, ggf. Cache anzeigen, dann API/Fallback laden; bei useApi + Fehler Refresh-Loop. */
       async function init() {
         setBackgroundImage();
-        const scale = Math.max(0.5, Math.min(200, Number(CONFIG.sizePercent) || 100)) / 100;
-        document.documentElement.style.setProperty("--dashboard-scale", String(scale));
+        document.documentElement.style.setProperty("--dashboard-scale", "1");
         updateDevBadgeVisibility();
 
         const cachedRaw = loadFromCache();
@@ -1289,6 +1340,10 @@
         if ((!events || !events.length) && CONFIG.data_source && /^https?:/i.test(CONFIG.data_source)) {
           startRefreshLoop();
         }
+
+        window.addEventListener("resize", () => {
+          requestAnimationFrame(updatePanelScaleToHeight);
+        });
       }
 
       window.addEventListener("DOMContentLoaded", () => {
