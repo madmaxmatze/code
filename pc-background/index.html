@@ -126,6 +126,21 @@
         padding-right: 0.15rem;
       }
 
+      #dev-badge {
+        position: absolute;
+        top: 0.4rem;
+        right: 0.6rem;
+        padding: 0.1rem 0.4rem;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.35);
+        color: #e5e7eb;
+        font-size: 0.62rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        display: none; /* wird per JS eingeblendet, wenn lokale JSON verwendet wird */
+      }
+
       .section-heading {
         font-size: 1.05rem;
         font-weight: 600;
@@ -235,6 +250,7 @@
   <body>
       <div class="stats-panel-wrapper">
       <div id="stats-panel">
+        <div id="dev-badge">DEV DATA</div>
         <div id="charts-container">
           <div id="section-current">
             <div class="section-heading section-heading-with-quota" id="heading-row">
@@ -383,6 +399,14 @@
       // Für Produktions-Retry: erste Minute alle 5 Sekunden, danach alle 60 Sekunden.
       const AW_REFRESH_RETRY_SHORT_MS = 5000;
       const AW_REFRESH_RETRY_LONG_MS = 60000;
+
+      function updateDevBadgeVisibility() {
+        const badge = document.getElementById("dev-badge");
+        if (!badge) return;
+        const hasOverride = !!getDataSourceFromUrl();
+        // Kein data_source-URL-Parameter → wir nutzen die Standard-JSON → DEV MODE anzeigen.
+        badge.style.display = hasOverride ? "none" : "inline-flex";
+      }
 
       // ---- Daten laden (API / Fallback / Cache) ----
       function loadFromCache() {
@@ -1246,6 +1270,7 @@
         setBackgroundImage();
         const scale = Math.max(0.5, Math.min(200, Number(CONFIG.sizePercent) || 100)) / 100;
         document.documentElement.style.setProperty("--dashboard-scale", String(scale));
+        updateDevBadgeVisibility();
 
         const cachedRaw = loadFromCache();
         if (cachedRaw) {
