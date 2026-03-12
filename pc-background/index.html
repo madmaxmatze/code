@@ -5,15 +5,15 @@
     <script>
       const CONFIG = {
         // Datenquelle:
-        // - Standard: lokale Export-JSON (z.B. für Entwicklung oder Offline-Nutzung)
+        // - Standard: Export-JSON (z.B. für Entwicklung oder Offline-Nutzung)
         // - Optional: per URL-Parameter überschreibbar, z.B.
         //   ?data_source=http://localhost:5600/api/0/export  (ActivityWatch-API)
-        data_source: getDataSourceFromUrl() || "aw-buckets-export.json",
+        data_source: getDataSourceFromUrl() || "https://code.mathiasnitzsche.de/pc-background/aw-buckets-export.json",
 
         // Muster (Regex, case-insensitive) für Kinder-Spiele.
         // Es wird gegen den Fenstertitel gematcht.
         kidsPattern:
-          "Minecraft|Takes|Crashers|Planet|Fifa|Cat|Lego|Goat|Sackboy|Fiction|Sonic",
+          "minecraft|takes|crashers|planet|fifa|cat|lego|goat|sackboy|fiction|sonic",
 
         // Background image files (URLs oder relative Pfade); eines wird zufällig gewählt.
         backgroundImages: [
@@ -145,8 +145,8 @@
         right: 0.6rem;
         padding: 0.1rem 0.4rem;
         border-radius: 999px;
-        background: rgba(148, 163, 184, 0.35);
-        color: #e5e7eb;
+        background: rgba(248, 113, 113, 0.9); /* helles Rot für bessere Sichtbarkeit */
+        color: #111827;
         font-size: 0.62rem;
         font-weight: 600;
         letter-spacing: 0.08em;
@@ -171,6 +171,7 @@
         align-items: center;
         flex-wrap: wrap;
         gap: 0.35rem 0.5rem;
+        justify-content: space-between;
       }
 
       .section-heading-with-quota .quota-inline {
@@ -268,7 +269,7 @@
           <div id="section-current">
             <div class="section-heading section-heading-with-quota" id="heading-row">
               <span id="heading-current"></span>
-              <span class="quota-inline">(<span id="quota-summary">…</span><span class="quota-bar-inline"><span class="quota-fill" id="quota-bar-fill"></span></span><span class="quota-pct" id="quota-percentage"></span>)</span>
+              <span class="quota-inline"><span id="quota-summary">…</span><span class="quota-bar-inline"><span class="quota-fill" id="quota-bar-fill"></span></span><span class="quota-pct" id="quota-percentage"></span></span>
             </div>
 
             <div class="chart-block">
@@ -876,10 +877,8 @@
           const year = currentYear - (currentMonthIndex - X + 1 + i < 0 ? 1 : 0);
           return { year, monthIndex };
         });
-        const monthLabelsLastX = lastXMonths.map(({ year, monthIndex }) => {
-          const name = monthNameFromIndex(monthIndex);
-          // Immer Jahr anzeigen, aber mit Zeilenumbruch im Label, z. B. ["Dez", "25"]
-          return [name, String(year).slice(-2)];
+        const monthLabelsLastX = lastXMonths.map(({ monthIndex }) => {
+          return monthNameFromIndex(monthIndex);
         });
         const monthlyByYearMonth = agg.monthlyByYearMonth || {};
         const monthlyByAppLastX = lastXMonths.map(
@@ -911,6 +910,7 @@
         const commonOptions = {
           responsive: true,
           maintainAspectRatio: false,
+          animation: false,
           plugins: {
             legend: {
               display: false,
@@ -1031,6 +1031,8 @@
               ...commonOptions.scales.x,
               ticks: {
                 ...commonOptions.scales.x.ticks,
+                maxRotation: 0,
+                minRotation: 0,
               },
             },
             y: {
@@ -1115,6 +1117,7 @@
             indexAxis: "y",
             responsive: true,
             maintainAspectRatio: false,
+            animation: false,
             plugins: {
               legend: {
                 display: false,
@@ -1138,6 +1141,9 @@
                 },
                 grid: {
                   color: "rgba(148, 163, 184, 0.25)",
+                },
+                border: {
+                  display: false,
                 },
               },
               y: {
@@ -1300,7 +1306,7 @@
           yearLabelEl.textContent = "Letzten " + monthsToShow + " Monate";
         }
         if (yearSummaryEl) {
-          yearSummaryEl.textContent = "(" + last12Summary + ")";
+          yearSummaryEl.textContent = last12Summary;
         }
         updateQuotaDisplay(agg.totalHoursThisMonth);
         renderCharts(agg);
