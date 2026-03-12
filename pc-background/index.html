@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Spielzeit Übersicht</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--
+      KONFIGURATION (CONFIG unten): is_development, data_source_production, data_source_development,
+      kidsPattern (Regex nur gegen Fenstertitel), backgroundImages (Array), monthlyQuotaHours,
+      monthsToShow (1–12).
+    -->
+    <script>
+      const CONFIG = {
+        // Entwicklungsmodus? true = development-Konfiguration, false = production-Konfiguration.
+        is_development: (location.hostname === "localhost"),
+
+        production: {
+          // ActivityWatch-API (z. B. Export eines Buckets).
+          data_source: "http://localhost:5600/api/0/export",
+
+          // Muster (Regex, case-insensitive) für Kinder-Spiele.
+          // Es wird gegen den Fenstertitel gematcht,
+          kidsPattern: "Minecraft|Takes|Crashers|Planet|Fifa|Cat|Lego|Goat|Sackboy|Fiction|Sonic",
+
+          // Background image files (relative to this HTML file); eines wird zufällig gewählt.
+          backgroundImages: [
+            "https://variety.com/wp-content/uploads/2022/09/Pixar-Wall-E.jpg",
+          ],
+
+          // Monthly quota (in hours) for this PC
+          monthlyQuotaHours: 10,
+
+          // Anzahl Monate für die unteren beiden Charts (Pro Jahr, Pro Jahr & Spiel).
+          // Letzte X Monate inkl. aktuellen (1–12). Weniger Monate = größere Balken.
+          monthsToShow: 12,
+
+          // Größe des gesamten Dashboards in Prozent (100 = aktuell, 120 = 20 % größer).
+          // Skaliert Box, Schrift und Charts proportional.
+          sizePercent: 100,
+        },
+
+        // Optionale Überschreibungen für die Entwicklung. Jeder hier gesetzte Wert
+        // überschreibt den entsprechenden Wert aus production, wenn is_development: true.
+        development: {
+          data_source: "aw-buckets-export.json"
+        },
+      };
+    </script>
+
+    <!-- Chart.js via cdnjs (https://cdnjs.cloudflare.com/) -->
+    <!-- Hinweis: integrity entfernt, damit Browser die Datei nicht blockiert,
+         falls sich der Hash auf dem CDN ändert. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        min-height: 100%;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        color: #f8fafc;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+
+      body {
+        background-color: #000;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: cover;
+      }
+
+      /* Skalierung aus CONFIG.sizePercent (100 = 100 %, 120 = 20 % größer) */
+      :root {
+        --dashboard-scale: 1;
+      }
+
+      /* Wrapper: Breite skaliert, Höhe folgt dem Inhalt (zoom vergrößert Layout) */
+      .stats-panel-wrapper {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        width: calc(min(40vw, 540px) * var(--dashboard-scale));
+        max-height: none;
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-start;
+        pointer-events: none;
+      }
+
+      .stats-panel-wrapper > #stats-panel {
+        pointer-events: auto;
+      }
+
+      /* Semi-transparent stats panel; zoom skaliert alles inkl. Layout-Höhe */
+      #stats-panel {
+        position: relative;
+        width: min(40vw, 540px);
+        zoom: var(--dashboard-scale);
+        /* etwas transparenter, damit der Hintergrund besser durchscheint */
+        background: rgba(15, 23, 42, 0.45);
+        border-radius: 16px;
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(14px);
+        padding: 1.25rem 1.5rem 1.5rem 1.5rem;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        overflow: visible;
+      }
+
+      #charts-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        flex: 1;
+        min-height: 0;
+        padding-right: 0.15rem;
+      }
+
+      .section-heading {
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: #e5e7eb;
+        margin-top: 0.35rem;
+        margin-bottom: 0.2rem;
+        padding-bottom: 0.15rem;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+      }
+
+      .section-heading-with-quota {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.35rem 0.5rem;
+      }
+
+      .section-heading-with-quota .quota-inline {
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: none;
+        letter-spacing: 0;
+        color: #cbd5e1;
+      }
+
+      .section-heading-with-quota .quota-bar-inline {
+        display: none;
+      }
+
+      .section-heading-with-quota .quota-pct {
+        display: none;
+      }
+
+      .chart-block {
+        background: rgba(15, 23, 42, 0.6);
+        border-radius: 12px;
+        padding: 0.55rem 0.7rem 0.6rem 0.7rem;
+        box-sizing: border-box;
+        border: 1px solid rgba(30, 64, 175, 0.35);
+      }
+
+      canvas {
+        width: 100% !important;
+        height: 170px !important;
+      }
+
+      /* Unterer Chart: Höhe wird per JS an Anzahl Spiele angepasst */
+      #games-chart-block {
+        min-height: 170px;
+      }
+
+      #games-chart-block canvas {
+        height: 100% !important;
+      }
+
+      #status {
+        display: none; /* Status nur in der Konsole, nicht im UI */
+      }
+
+      #status span.status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.1rem 0.45rem;
+        border-radius: 999px;
+        background: rgba(15, 118, 110, 0.25);
+        color: #a7f3d0;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 600;
+      }
+
+      #status span.status-badge.error {
+        background: rgba(127, 29, 29, 0.4);
+        color: #fecaca;
+      }
+
+      #status span.status-badge.warning {
+        background: rgba(133, 77, 14, 0.4);
+        color: #fed7aa;
+      }
+
+      @media (max-width: 900px) {
+        .stats-panel-wrapper {
+          width: calc(min(90vw, 480px) * var(--dashboard-scale));
+          right: 0.75rem;
+        }
+
+        #stats-panel {
+          width: min(90vw, 480px);
+        }
+
+        canvas {
+          height: 150px !important;
+        }
+
+        #games-chart-block {
+          min-height: 150px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+      <div class="stats-panel-wrapper">
+      <div id="stats-panel">
+        <div id="charts-container">
+          <div id="section-current">
+            <div class="section-heading section-heading-with-quota" id="heading-row">
+              <span id="heading-current"></span>
+              <span class="quota-inline">(<span id="quota-summary">…</span><span class="quota-bar-inline"><span class="quota-fill" id="quota-bar-fill"></span></span><span class="quota-pct" id="quota-percentage"></span>)</span>
+            </div>
+
+            <div class="chart-block">
+              <canvas id="monthlyChart"></canvas>
+            </div>
+          </div>
+
+          <div id="section-year">
+            <div class="section-heading section-heading-with-quota" id="heading-year">
+              <span id="heading-year-label"></span>
+              <span class="quota-inline" id="heading-year-summary"></span>
+            </div>
+
+            <div class="chart-block">
+              <div>
+                <canvas id="dailyChart"></canvas>
+              </div>
+              <div id="games-chart-block">
+                <canvas id="gamesChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="status"></div>
+      </div>
+      </div>
+
+    <script>
+      /**
+       * =============================================================================
+       * SPIELZEIT-DASHBOARD – Kontext für zukünftige Weiterentwicklung
+       * =============================================================================
+       *
+       * ZWECK:
+       *   Dieses Dashboard zeigt die Spielzeit von Kindern auf einem Gaming-PC.
+       *   Es wird als Webseite im Hintergrund (z. B. via „Website als Desktophintergrund“)
+       *   angezeigt, damit die Kinder auf einen Blick sehen: Stunden diesen Monat,
+       *   Verlauf pro Tag/Monat, und welche Spiele wie viel Zeit verbraucht haben.
+       *
+       * DATENQUELLE:
+       *   ActivityWatch (https://activitywatch.net). Es werden Fenster-Events ausgewertet
+       *   (typischerweise aw-watcher-window-Bucket; data_source_production sollte auf den Export dieses
+       *   Buckets zeigen, nicht nur aw-watcher-afk). Die API liefert Rohdaten (timestamp,
+       *   duration, data.app, data.title). Eine Kategorisierung wie „Media > GamesKids“
+       *   existiert in der Export-API nicht – sie wird nur in der Web-UI zur Laufzeit
+       *   berechnet. Daher filtern wir hier ausschließlich über ein Regex-Muster
+       *   (CONFIG.kidsPattern) gegen den Fenstertitel (nicht gegen data.app, um
+       *   System-Apps wie ApplicationFrameHost nicht zu treffen).
+       *
+       * WICHTIGE ENTSCHEIDUNGEN:
+       *   - Events kürzer als 10 Minuten werden ignoriert (Rauschen/Abweichungen).
+       *   - is_development: true → nur lokale Datei (data_source_development),
+       *     keine API-Aufrufe. is_development: false → primär API
+       *     (data_source_production), bei Fehler Fallback auf
+       *     data_source_development (falls gesetzt); nach Fehlern wird alle 10 s
+       *     erneut versucht, bis ein Ladevorgang gelingt.
+       *   - CORS: Bei Origin "null" (file:// oder manche Desktophintergründe) blockiert
+       *     der Browser API-Aufrufe. Dashboard dann per lokalem Webserver (z. B.
+       *     http://localhost:8000) ausliefern und in ActivityWatch (config.toml:
+       *     cors = ["http://localhost:8000"]) diese Origin erlauben.
+       *   - Bei Start: zuerst Anzeige aus localStorage (falls vorhanden), dann
+       *     Ladeversuch API/Fallback; bei Erfolg wird in localStorage gespeichert.
+       *
+       * STRUKTUR:
+       *   CONFIG → loadFromCache / loadEvents (API oder data_source_development) →
+       *   extractEvents (unterstützt buckets-Export und einzelne Bucket-Exports) →
+       *   aggregate (Filter kidsPattern auf title, 10-min-Schwelle, Aufteilung nach
+       *   Jahr/Monat/Tag, monthlyByYearMonth für variable Zeiträume) →
+       *   applyData → updateQuotaDisplay + renderCharts (Chart.js: Pro Monat,
+       *   Pro Jahr, Pro Jahr & Spiel; Wochenenden im ersten Chart per Plugin).
+       */
+
+      function setBackgroundImage() {
+        try {
+          if (ACTIVE_CONFIG && Array.isArray(ACTIVE_CONFIG.backgroundImages) && ACTIVE_CONFIG.backgroundImages.length) {
+            const idx = Math.floor(Math.random() * ACTIVE_CONFIG.backgroundImages.length);
+            const img = ACTIVE_CONFIG.backgroundImages[idx];
+            document.body.style.backgroundImage = "url('" + img + "')";
+          }
+        } catch (err) {
+          console.error("Failed to set background image", err);
+        }
+      }
+
+      // ---- Konstanten ----
+      // Farbpalette mit möglichst unterschiedlichen, gut unterscheidbaren und eher
+      // leuchtenden Farben (angelehnt an kräftige qualitative Paletten).
+      const COLOR_PALETTE = [
+        "#ef4444", // kräftiges Rot
+        "#22c55e", // kräftiges Grün
+        "#facc15", // kräftiges Gelb
+        "#6366f1", // kräftiges Indigo/Violett
+        "#0ea5e9", // kräftiges Hellblau
+        "#f97316", // kräftiges Orange
+        "#a855f7", // kräftiges Violett
+        "#14b8a6", // kräftiges Türkis
+        "#84cc16", // Limettengrün
+        "#fb7185", // Koralle
+        "#b91c1c", // Dunkelrot
+        "#15803d", // Dunkelgrün
+        "#b45309", // Dunkelorange
+        "#1d4ed8", // Dunkelblau
+        "#db2777", // Magenta
+        "#0f766e", // Petrol
+        "#4f46e5", // Indigo
+        "#65a30d", // Olivgrün
+        "#0891b2", // Zyan
+        "#9f1239", // Weinrot
+      ];
+
+      function formatHours(value) {
+        return Number(value || 0).toFixed(1);
+      }
+
+      // Feste Definition des App-Feldes und der Kinder-Spiel-Filter.
+      const APP_FIELD = "app";
+      function getActiveConfig() {
+        const base = CONFIG.production || {};
+        const overrides = CONFIG.is_development && CONFIG.development
+          ? CONFIG.development
+          : {};
+        return { ...base, ...overrides };
+      }
+
+      const ACTIVE_CONFIG = getActiveConfig();
+
+      const KIDS_REGEX = new RegExp(ACTIVE_CONFIG.kidsPattern, "i");
+
+      function monthNameFromIndex(monthIndex) {
+        return new Date(2000, monthIndex, 1).toLocaleString(undefined, {
+          month: "short",
+        });
+      }
+
+      function getDaysInMonth(year, monthIndex) {
+        return new Date(year, monthIndex + 1, 0).getDate();
+      }
+
+      const AW_CACHE_KEY = "aw-kids-playtime-cache";
+      // Für Produktions-Retry: erste Minute alle 5 Sekunden, danach alle 60 Sekunden.
+      const AW_REFRESH_RETRY_SHORT_MS = 5000;
+      const AW_REFRESH_RETRY_LONG_MS = 60000;
+
+      // ---- Daten laden (API / Fallback / Cache) ----
+      function loadFromCache() {
+        try {
+          const s = localStorage.getItem(AW_CACHE_KEY);
+          if (!s) return null;
+          return JSON.parse(s);
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function saveToCache(raw) {
+        try {
+          localStorage.setItem(AW_CACHE_KEY, JSON.stringify(raw));
+        } catch (e) {}
+      }
+
+      async function fetchJson(url) {
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status + " " + response.statusText);
+        }
+        return await response.json();
+      }
+
+      /** Liefert events-Array oder null. Speichert bei Erfolg raw in localStorage. */
+      async function loadEvents() {
+        const messages = [];
+        let sourceLabel = "";
+        let raw;
+
+        if (CONFIG.is_development) {
+          // Entwicklungsmodus: nur lokale Datei, kein API-Fallback.
+          if (ACTIVE_CONFIG.data_source) {
+            try {
+              raw = await fetchJson(ACTIVE_CONFIG.data_source);
+              sourceLabel = "lokaler JSON-Export (Entwicklung)";
+              messages.push("Daten aus lokaler Entwicklungs-JSON geladen.");
+            } catch (fileError) {
+              const fileProtocolHint =
+                window.location.protocol === "file:"
+                  ? " Hinweis: Direktes Laden von JSON-Dateien per file:// wird von vielen Browsern blockiert. Bitte über einen lokalen Webserver (z. B. http://localhost) aufrufen."
+                  : "";
+              console.error(
+                "Konnte die Entwicklungs-JSON-Datei nicht laden." +
+                  fileProtocolHint,
+                fileError
+              );
+              return null;
+            }
+          } else {
+            console.error(
+              "CONFIG.is_development=true, aber development.data_source ist nicht gesetzt."
+            );
+            return null;
+          }
+        } else {
+          // Produktionsmodus: nur API, kein Fallback auf Entwicklungsdaten.
+          if (ACTIVE_CONFIG.data_source) {
+            try {
+              raw = await fetchJson(ACTIVE_CONFIG.data_source);
+              sourceLabel = "ActivityWatch-API";
+              messages.push("Daten von der lokalen ActivityWatch-API geladen.");
+            } catch (apiError) {
+              console.error(
+                "Konnte nicht von der ActivityWatch-API laden.",
+                apiError
+              );
+              return null;
+            }
+          } else {
+            console.error(
+              "CONFIG.is_development=false, aber production.data_source ist nicht gesetzt."
+            );
+            return null;
+          }
+        }
+
+        saveToCache(raw);
+        const events = extractEvents(raw);
+
+        if (!events || !events.length) {
+          console.warn(
+            "Keine Ereignisse im Datensatz gefunden. Quelle: " + sourceLabel
+          );
+          return [];
+        }
+
+        console.info(
+          "ActivityWatch-Daten geladen:",
+          sourceLabel,
+          "|",
+          messages.join(" "),
+          "| Roh-Einträge:",
+          events.length
+        );
+
+        return events;
+      }
+
+      /** Unterstützt sowohl kompletten Bucket-Export (raw.buckets) als auch einzelnen Bucket (raw.events). */
+      function extractEvents(raw) {
+        if (!raw) return [];
+
+        if (Array.isArray(raw.events)) {
+          return raw.events;
+        }
+
+        if (Array.isArray(raw)) {
+          if (raw.length && raw[0] && Array.isArray(raw[0].events)) {
+            return raw.flatMap((b) => b.events || []);
+          }
+          return raw;
+        }
+
+        if (raw.buckets && typeof raw.buckets === "object") {
+          const all = [];
+          for (const key of Object.keys(raw.buckets)) {
+            const bucket = raw.buckets[key];
+            if (bucket && Array.isArray(bucket.events)) {
+              all.push(...bucket.events);
+            }
+          }
+          return all;
+        }
+
+        if (raw.events && Array.isArray(raw.events)) {
+          return raw.events;
+        }
+
+        return [];
+      }
+
+      /**
+       * Filtert nach kidsPattern (nur auf data.title), ignoriert Events < 10 min,
+       * baut Strukturen für aktueller Monat (Tage), aktuelles Jahr (Monate) und
+       * monthlyByYearMonth für aktuelles + Vorjahr (für variable „letzte X Monate“).
+       */
+      function aggregate(events) {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonthIndex = now.getMonth();
+        const daysInCurrentMonth = getDaysInMonth(currentYear, currentMonthIndex);
+
+        const monthlyByApp = Array.from({ length: 12 }, () =>
+          Object.create(null)
+        );
+        const monthlyByYearMonth = Object.create(null);
+        const dailyByApp = Array.from({ length: daysInCurrentMonth }, () =>
+          Object.create(null)
+        );
+
+        let totalHoursThisMonth = 0;
+        let matchedEvents = 0;
+        const totalByAppThisMonth = Object.create(null);
+
+        // Pro Tag sammeln wir alle relevanten Events (nach Filterung), um Überschneidungen
+        // aufzulösen: zu jedem Zeitpunkt zählt nur das Spiel, das zuerst gestartet wurde.
+        const perDayEvents = Object.create(null); // key: `${year}-${monthIndex}-${dayOfMonth}` → Array<{start,end,year,monthIndex,dayOfMonth,gameKey,originalStart}>
+
+        for (const ev of events) {
+          if (!ev || !ev.timestamp || typeof ev.duration !== "number") continue;
+
+          const ts = new Date(ev.timestamp);
+          if (Number.isNaN(ts.getTime())) continue;
+
+          // Einzelne Events kürzer als 10 Minuten ignorieren
+          if (ev.duration < 600) continue;
+
+          const year = ts.getFullYear();
+          const monthIndex = ts.getMonth();
+          const dayOfMonth = ts.getDate();
+
+          const data = ev.data || {};
+
+          const titleRaw = data.title;
+          const title =
+            titleRaw && String(titleRaw).trim()
+              ? String(titleRaw).trim()
+              : "";
+
+          const appRaw = data[APP_FIELD];
+          const app =
+            appRaw && String(appRaw).trim()
+              ? String(appRaw).trim()
+              : "Unbekannt";
+
+          // Nur Events zählen, deren Titel auf das Kinder-Spiel-Muster passt.
+          if (!KIDS_REGEX.test(title)) {
+            continue;
+          }
+
+          // "Spielname" aus Titel/App ableiten: .exe entfernen, "Rafa"/"Mateo" raus, Rand trimmen
+          const baseName = title || app || "Unbekannt";
+          let gameKey = baseName
+            .replace(/\.exe/gi, "")
+            .replace(/Rafa/gi, "")
+            .replace(/Mateo/gi, "")
+            .replace(/^[\s-]+|[\s-]+$/g, "")
+            .trim();
+          // Alle Minecraft-Varianten auf einen gemeinsamen Namen mappen
+          if (/minecraft/i.test(gameKey)) {
+            gameKey = "Minecraft";
+          }
+          gameKey = gameKey || "Unbekannt";
+
+          const start = ts.getTime();
+          const end = start + ev.duration * 1000;
+          if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start)
+            continue;
+
+          matchedEvents++;
+
+          const dayKey = `${year}-${monthIndex}-${dayOfMonth}`;
+          if (!perDayEvents[dayKey]) perDayEvents[dayKey] = [];
+          perDayEvents[dayKey].push({
+            start,
+            end,
+            year,
+            monthIndex,
+            dayOfMonth,
+            gameKey,
+            originalStart: start,
+          });
+        }
+
+        // Jetzt pro Tag alle Überschneidungen auflösen: für jedes Zeitintervall
+        // zählt nur das zuerst gestartete Spiel.
+        for (const dayKey of Object.keys(perDayEvents)) {
+          const dayEvents = perDayEvents[dayKey];
+          if (!dayEvents || !dayEvents.length) continue;
+
+          // Alle Zeitgrenzen sammeln und sortieren
+          const boundariesSet = new Set();
+          for (const e of dayEvents) {
+            boundariesSet.add(e.start);
+            boundariesSet.add(e.end);
+          }
+          const boundaries = Array.from(boundariesSet).sort((a, b) => a - b);
+
+          for (let i = 0; i < boundaries.length - 1; i++) {
+            const segStart = boundaries[i];
+            const segEnd = boundaries[i + 1];
+            if (segEnd <= segStart) continue;
+
+            // Alle Events, die dieses Segment überdecken
+            const active = dayEvents.filter(
+              (e) => e.start < segEnd && e.end > segStart
+            );
+            if (!active.length) continue;
+
+            // Gewinner: Event mit dem frühesten Startzeitpunkt
+            let winner = active[0];
+            for (let j = 1; j < active.length; j++) {
+              if (active[j].originalStart < winner.originalStart) {
+                winner = active[j];
+              }
+            }
+
+            const durationSeconds = (segEnd - segStart) / 1000;
+            const hours = durationSeconds / 3600;
+            if (!Number.isFinite(hours) || hours <= 0) continue;
+
+            const { year, monthIndex, dayOfMonth, gameKey } = winner;
+
+            const inCurrentYear =
+              year === currentYear && monthIndex >= 0 && monthIndex < 12;
+            const inPrevYear =
+              year === currentYear - 1 && monthIndex >= 0 && monthIndex < 12;
+
+            if (inCurrentYear || inPrevYear) {
+              const key = `${year}-${monthIndex}`;
+              if (!monthlyByYearMonth[key])
+                monthlyByYearMonth[key] = Object.create(null);
+              const bucket = monthlyByYearMonth[key];
+              bucket[gameKey] = (bucket[gameKey] || 0) + hours;
+            }
+
+            if (inCurrentYear) {
+              const monthBucket = monthlyByApp[monthIndex];
+              monthBucket[gameKey] = (monthBucket[gameKey] || 0) + hours;
+            }
+
+            if (year === currentYear && monthIndex === currentMonthIndex) {
+              const dayIndex = dayOfMonth - 1;
+              if (dayIndex >= 0 && dayIndex < daysInCurrentMonth) {
+                const dayBucket = dailyByApp[dayIndex];
+                dayBucket[gameKey] = (dayBucket[gameKey] || 0) + hours;
+              }
+
+              totalHoursThisMonth += hours;
+              totalByAppThisMonth[gameKey] =
+                (totalByAppThisMonth[gameKey] || 0) + hours;
+            }
+          }
+        }
+
+        const appsSet = new Set();
+        monthlyByApp.forEach((bucket) => {
+          Object.keys(bucket).forEach((game) => appsSet.add(game));
+        });
+        Object.values(monthlyByYearMonth).forEach((bucket) => {
+          Object.keys(bucket).forEach((game) => appsSet.add(game));
+        });
+        dailyByApp.forEach((bucket) => {
+          Object.keys(bucket).forEach((game) => appsSet.add(game));
+        });
+        const apps = Array.from(appsSet).sort((a, b) => a.localeCompare(b));
+
+        return {
+          apps,
+          monthlyByApp,
+          monthlyByYearMonth,
+          dailyByApp,
+          totalHoursThisMonth,
+          currentYear,
+          currentMonthIndex,
+          daysInCurrentMonth,
+          matchedEvents,
+          totalByAppThisMonth,
+        };
+      }
+
+      function buildChartDatasets(apps, bucketsArray, colorByApp) {
+        return apps.map((app, index) => {
+          const fallbackColor = COLOR_PALETTE[index % COLOR_PALETTE.length];
+          const color = colorByApp[app] || fallbackColor;
+          const data = bucketsArray.map((bucket) => bucket[app] || 0);
+          return {
+            label: app,
+            data,
+            backgroundColor: color + "cc",
+            borderColor: color,
+            borderWidth: 1,
+            stack: "stack-0",
+          };
+        });
+      }
+
+      let monthlyChartInstance = null;
+      let dailyChartInstance = null;
+      let gamesChartInstance = null;
+
+      /** Chart.js-Plugin: vertikale Hintergrundstreifen für Sa/So und eine rote Linie für „heute“ im Tages-Chart. */
+      const weekendBackgroundPlugin = {
+        id: "weekendBackground",
+        beforeDatasetsDraw(chart) {
+          const cfg = chart.options.plugins?.weekendBackground;
+          if (!cfg || cfg.currentYear === undefined) return;
+          const { currentYear, currentMonthIndex, daysInMonth, todayDay } = cfg;
+          const scale = chart.scales.x;
+          if (!scale || daysInMonth < 1) return;
+          const ctx = chart.ctx;
+          const chartArea = chart.chartArea;
+          const step = daysInMonth > 1 ? scale.getPixelForValue(1) - scale.getPixelForValue(0) : 20;
+          const weekendColor = "rgba(100, 116, 139, 0.18)";
+
+          for (let i = 0; i < daysInMonth; i++) {
+            const d = new Date(currentYear, currentMonthIndex, i + 1);
+            if (d.getDay() !== 0 && d.getDay() !== 6) continue;
+            const center = scale.getPixelForValue(i);
+            const startX = center - step / 2;
+            const width = step;
+            ctx.save();
+            ctx.fillStyle = weekendColor;
+            ctx.fillRect(startX, chartArea.top, width, chartArea.bottom - chartArea.top);
+            ctx.restore();
+          }
+
+          if (todayDay != null && todayDay >= 1 && todayDay <= daysInMonth) {
+            const i = todayDay - 1;
+            const x = scale.getPixelForValue(i);
+            ctx.save();
+            ctx.strokeStyle = "rgba(248, 113, 113, 0.9)"; // helleres Rot
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 3]); // gestrichelte Linie
+            ctx.beginPath();
+            ctx.moveTo(x, chartArea.top);
+            ctx.lineTo(x, chartArea.bottom);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+          }
+        },
+      };
+      Chart.register(weekendBackgroundPlugin);
+
+      /** Erstellt/aktualisiert alle drei Charts (Pro Monat, Pro Jahr, Pro Jahr & Spiel). */
+      function renderCharts(agg) {
+        const X = Math.min(12, Math.max(1, Number(ACTIVE_CONFIG.monthsToShow) || 6));
+        const currentYear = agg.currentYear;
+        const currentMonthIndex = agg.currentMonthIndex;
+        const lastXMonths = Array.from({ length: X }, (_, i) => {
+          const monthIndex = (currentMonthIndex - X + 1 + i + 12) % 12;
+          const year = currentYear - (currentMonthIndex - X + 1 + i < 0 ? 1 : 0);
+          return { year, monthIndex };
+        });
+        const monthLabelsLastX = lastXMonths.map(({ year, monthIndex }) => {
+          const name = monthNameFromIndex(monthIndex);
+          // Immer Jahr anzeigen, aber mit Zeilenumbruch im Label, z. B. ["Dez", "25"]
+          return [name, String(year).slice(-2)];
+        });
+        const monthlyByYearMonth = agg.monthlyByYearMonth || {};
+        const monthlyByAppLastX = lastXMonths.map(
+          ({ year, monthIndex }) => monthlyByYearMonth[`${year}-${monthIndex}`] || {}
+        );
+        const dayLabels = Array.from(
+          { length: agg.daysInCurrentMonth },
+          (_, i) => String(i + 1)
+        );
+
+        // Farbzuordnung pro Spiel, damit alle Charts dieselben Farben verwenden
+        const colorByApp = {};
+        agg.apps.forEach((app, index) => {
+          colorByApp[app] =
+            COLOR_PALETTE[index % COLOR_PALETTE.length];
+        });
+
+        const monthlyDatasetsLastX = buildChartDatasets(
+          agg.apps,
+          monthlyByAppLastX,
+          colorByApp
+        );
+        const dailyDatasets = buildChartDatasets(
+          agg.apps,
+          agg.dailyByApp,
+          colorByApp
+        );
+
+        const commonOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const value = context.parsed.y || 0;
+                  return `${context.dataset.label}: ${formatHours(
+                    value
+                  )} h`;
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              stacked: true,
+              ticks: {
+                color: "#cbd5f5",
+                font: { size: 10 },
+              },
+              grid: {
+                display: false,
+              },
+            },
+            y: {
+              stacked: true,
+              ticks: {
+                color: "#cbd5f5",
+                font: { size: 10 },
+              },
+              grid: {
+                color: "rgba(148, 163, 184, 0.22)",
+              },
+              title: { display: false },
+            },
+          },
+        };
+
+        // Mittlerer Chart (Stunden pro Monat): Achse mit "h", ohne Y-Titel
+        const monthlyOptions = {
+          ...commonOptions,
+          plugins: {
+            ...commonOptions.plugins,
+          },
+          scales: {
+            x: commonOptions.scales.x,
+            y: {
+              ...commonOptions.scales.y,
+              ticks: {
+                ...commonOptions.scales.y.ticks,
+                callback: (value) => String(Math.round(value)) + "h",
+              },
+              grid: {
+                // Quota-Höhe etwas heller und 2px stark, andere Linien wie gewohnt.
+                color: (ctx) => {
+                  const v = ctx.tick && ctx.tick.value;
+                  const quota = ACTIVE_CONFIG.monthlyQuotaHours || 10;
+                  if (Math.abs(Number(v) - quota) < 1e-6) {
+                    return "rgba(248, 250, 252, 0.9)";
+                  }
+                  return "rgba(148, 163, 184, 0.25)";
+                },
+                lineWidth: (ctx) => {
+                  const v = ctx.tick && ctx.tick.value;
+                  const quota = ACTIVE_CONFIG.monthlyQuotaHours || 10;
+                  if (Math.abs(Number(v) - quota) < 1e-6) {
+                    return 2;
+                  }
+                  return 1;
+                },
+              },
+              border: {
+                display: false,
+              },
+            },
+          },
+        };
+
+        // Pro-Monat-Chart (Tage) in Minuten; Wochenenden als vertikale farbige Hintergründe
+        const dailyDatasetsInMinutes = dailyDatasets.map((ds) => ({
+          ...ds,
+          data: ds.data.map((v) => v * 60),
+        }));
+
+        const dailyOptions = {
+          ...commonOptions,
+          plugins: {
+            ...commonOptions.plugins,
+            weekendBackground: {
+              currentYear: agg.currentYear,
+              currentMonthIndex: agg.currentMonthIndex,
+              daysInMonth: agg.daysInCurrentMonth,
+              todayDay:
+                agg.currentYear === new Date().getFullYear() &&
+                agg.currentMonthIndex === new Date().getMonth()
+                  ? new Date().getDate()
+                  : null,
+            },
+            tooltip: {
+              callbacks: {
+                title: (tooltipItems) => {
+                  if (!tooltipItems.length) return "";
+                  const day = tooltipItems[0].label;
+                  const monthName = new Date(agg.currentYear, agg.currentMonthIndex, 1).toLocaleString("de", { month: "long" });
+                  return `${day}. ${monthName}`;
+                },
+                label: (context) => {
+                  const value = context.parsed.y || 0;
+                  return `${context.dataset.label}: ${Math.round(value)} min`;
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              ...commonOptions.scales.x,
+              ticks: {
+                ...commonOptions.scales.x.ticks,
+              },
+            },
+            y: {
+              ...commonOptions.scales.y,
+              ticks: {
+                ...commonOptions.scales.y.ticks,
+                callback: (value) => String(Math.round(value)) + "m",
+              },
+              title: { display: false },
+            },
+          },
+        };
+
+        const gamesCtx = document
+          .getElementById("gamesChart")
+          .getContext("2d");
+        const monthlyCtx = document
+          .getElementById("monthlyChart")
+          .getContext("2d");
+        const dailyCtx = document
+          .getElementById("dailyChart")
+          .getContext("2d");
+
+        if (gamesChartInstance) {
+          gamesChartInstance.destroy();
+        }
+        if (monthlyChartInstance) {
+          monthlyChartInstance.destroy();
+        }
+        if (dailyChartInstance) {
+          dailyChartInstance.destroy();
+        }
+
+        // Daten für horizontales Balkendiagramm: Stunden pro Spiel (letzte X Monate)
+        const totalByAppLastX = {};
+        agg.apps.forEach((app) => {
+          totalByAppLastX[app] = monthlyByAppLastX.reduce(
+            (sum, bucket) => sum + (bucket[app] || 0),
+            0
+          );
+        });
+        const appsWithTime = agg.apps
+          .map((app) => ({
+            app,
+            hours: totalByAppLastX[app] || 0,
+          }))
+          .filter((entry) => entry.hours > 0)
+          .sort((a, b) => b.hours - a.hours);
+
+        const gamesLabels = appsWithTime.map((entry) =>
+          entry.app.replace(/\.exe$/i, "")
+        );
+        const gamesData = appsWithTime.map((entry) => entry.hours);
+        const gamesColors = appsWithTime.map((entry, index) => {
+          const c =
+            colorByApp[entry.app] ||
+            COLOR_PALETTE[index % COLOR_PALETTE.length];
+          // etwas durchsichtiger machen
+          return c + "99";
+        });
+
+        const gamesChartBlock = document.getElementById("games-chart-block");
+        const barHeightPx = 26; // etwas niedrigere Höhe pro Spielzeile, wächst aber mit der Anzahl Spiele
+        const gamesChartHeight = Math.max(170, appsWithTime.length * barHeightPx);
+        if (gamesChartBlock) gamesChartBlock.style.height = gamesChartHeight + "px";
+
+        gamesChartInstance = new Chart(gamesCtx, {
+          type: "bar",
+          data: {
+            labels: gamesLabels,
+            datasets: [
+              {
+                label: "Spielzeit",
+                data: gamesData,
+                backgroundColor: gamesColors,
+                borderColor: gamesColors,
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false,
+              },
+              tooltip: {
+                callbacks: {
+                  label: (context) => {
+                    const raw = Number(context.parsed.x || 0);
+                    const value =
+                      raw < 1
+                        ? Number(raw.toFixed(1))
+                        : Math.round(raw);
+                    const formatted =
+                      value % 1 === 0
+                        ? String(value)
+                        : value.toFixed(1).replace(".", ",");
+                    return `${context.label}: ${formatted} h`;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: {
+                  color: "#cbd5f5",
+                  font: { size: 10 },
+                  callback: (value) => String(Math.round(Number(value))) + "h",
+                },
+                grid: {
+                  color: "rgba(148, 163, 184, 0.25)",
+                },
+              },
+              y: {
+                ticks: {
+                  color: "#cbd5f5",
+                  font: { size: 10 },
+                },
+                grid: {
+                  display: false,
+                },
+                title: { display: false },
+              },
+            },
+          },
+        });
+
+        // Pro Monat (oberer Chart): aktueller Monat, in Minuten; Wochenenden hervorheben
+        monthlyChartInstance = new Chart(monthlyCtx, {
+          type: "bar",
+          data: {
+            labels: dayLabels,
+            datasets: dailyDatasetsInMinutes,
+          },
+          options: dailyOptions,
+        });
+
+        // Pro Jahr (mittlerer Chart): Stunden pro Monat (letzte X Monate); Quota-Linie über y.grid hervorgehoben
+        dailyChartInstance = new Chart(dailyCtx, {
+          type: "bar",
+          data: {
+            labels: monthLabelsLastX,
+            datasets: monthlyDatasetsLastX,
+          },
+          options: monthlyOptions,
+        });
+      }
+
+      /** Setzt Überschrift „X / 10 h gespielt“ und (ausgeblendeten) Fortschrittsbalken. */
+      function updateQuotaDisplay(totalHoursThisMonth) {
+        const quota = ACTIVE_CONFIG.monthlyQuotaHours || 10;
+        const used = totalHoursThisMonth;
+        const ratio = quota > 0 ? used / quota : 0;
+        const percentage = Math.round(ratio * 100);
+
+        const quotaSummary = document.getElementById("quota-summary");
+        const quotaFill = document.getElementById("quota-bar-fill");
+        const quotaPercentage = document.getElementById("quota-percentage");
+
+        if (quotaSummary) {
+          // Beispiel: "3.3 / 10h"
+          quotaSummary.textContent =
+            formatHours(used) + " / " + Math.round(quota) + "h";
+        }
+        if (quotaFill) {
+          quotaFill.style.width = Math.min(100, Math.max(0, percentage)) + "%";
+        }
+        if (quotaPercentage) {
+          quotaPercentage.textContent = percentage + "%";
+        }
+      }
+
+      /** Wendet aggregierte Daten an: Überschriften, Quota, Charts. Bei leeren Events: leere Charts. */
+      function applyData(events) {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonthIndex = now.getMonth();
+        const daysInCurrentMonth = getDaysInMonth(currentYear, currentMonthIndex);
+        if (!events || !events.length) {
+          updateQuotaDisplay(0);
+          const monthDate = new Date(currentYear, currentMonthIndex, 1);
+          const monthLabel = monthDate.toLocaleString("de-DE", {
+            month: "long",
+            year: "numeric",
+          });
+          const currentHeading = document.getElementById("heading-current");
+          const yearLabelEl = document.getElementById("heading-year-label");
+          const yearSummaryEl = document.getElementById("heading-year-summary");
+          if (currentHeading) currentHeading.textContent = monthLabel;
+          const monthsToShowEmpty = Math.min(
+            12,
+            Math.max(1, Number(ACTIVE_CONFIG.monthsToShow) || 6)
+          );
+          if (yearLabelEl)
+            yearLabelEl.textContent =
+              "Letzten " + monthsToShowEmpty + " Monate";
+          if (yearSummaryEl) yearSummaryEl.textContent = "";
+          const emptyAgg = {
+            apps: [],
+            monthlyByApp: Array.from({ length: 12 }, () => ({})),
+            monthlyByYearMonth: {},
+            dailyByApp: Array.from({ length: daysInCurrentMonth }, () => ({})),
+            totalHoursThisMonth: 0,
+            currentYear,
+            currentMonthIndex,
+            daysInCurrentMonth,
+            matchedEvents: 0,
+            totalByAppThisMonth: {},
+          };
+          renderCharts(emptyAgg);
+          return;
+        }
+        const agg = aggregate(events);
+        if (!agg.matchedEvents || agg.matchedEvents === 0 || !agg.apps.length) {
+          console.warn(
+            'Keine Spiele für das Muster "' + CONFIG.kidsPattern + '" gefunden.'
+          );
+          updateQuotaDisplay(0);
+          renderCharts(agg);
+          return;
+        }
+        console.info("Gefilterte Spiele-Einträge:", agg.matchedEvents);
+        const currentHeading = document.getElementById("heading-current");
+        const yearLabelEl = document.getElementById("heading-year-label");
+        const yearSummaryEl = document.getElementById("heading-year-summary");
+        const monthDate = new Date(agg.currentYear, agg.currentMonthIndex, 1);
+        const monthLabel = monthDate.toLocaleString("de-DE", {
+          month: "long",
+          year: "numeric",
+        });
+        if (currentHeading) currentHeading.textContent = monthLabel;
+
+        const monthsToShow = Math.min(
+          12,
+          Math.max(1, Number(ACTIVE_CONFIG.monthsToShow) || 6)
+        );
+
+        // Gesamtstunden der letzten 12 Monate berechnen (unabhängig von monthsToShow)
+        const quotaPerMonth = ACTIVE_CONFIG.monthlyQuotaHours || 10;
+        const monthsBackForQuota = 12;
+        const last12Months = Array.from(
+          { length: monthsBackForQuota },
+          (_, i) => {
+            const idxFromEnd = i;
+            const monthIndex =
+              (agg.currentMonthIndex - idxFromEnd + 12) % 12;
+            const year =
+              agg.currentYear -
+              (agg.currentMonthIndex - idxFromEnd < 0 ? 1 : 0);
+            return { year, monthIndex };
+          }
+        );
+        let hoursLast12 = 0;
+        const monthlyByYearMonth = agg.monthlyByYearMonth || {};
+        for (const { year, monthIndex } of last12Months) {
+          const key = `${year}-${monthIndex}`;
+          const bucket = monthlyByYearMonth[key];
+          if (!bucket) continue;
+          for (const val of Object.values(bucket)) {
+            const h = Number(val) || 0;
+            hoursLast12 += h;
+          }
+        }
+        const quotaLast12 = quotaPerMonth * monthsBackForQuota;
+        const last12Summary =
+          Math.round(hoursLast12) + " / " + quotaLast12 + "h";
+
+        if (yearLabelEl) {
+          yearLabelEl.textContent = "Letzten " + monthsToShow + " Monate";
+        }
+        if (yearSummaryEl) {
+          yearSummaryEl.textContent = "(" + last12Summary + ")";
+        }
+        updateQuotaDisplay(agg.totalHoursThisMonth);
+        renderCharts(agg);
+      }
+
+      /**
+       * Nur im Produktionsmodus (is_development: false) und bei fehlgeschlagenem Ladevorgang:
+       * automatisch neu versuchen – für die erste Minute alle 5 s, danach jede Minute.
+       */
+      function startRefreshLoop(startTime = Date.now()) {
+        if (CONFIG.is_development) return;
+        const elapsed = Date.now() - startTime;
+        const interval =
+          elapsed < 60000
+            ? AW_REFRESH_RETRY_SHORT_MS
+            : AW_REFRESH_RETRY_LONG_MS;
+        setTimeout(async () => {
+          const events = await loadEvents();
+          if (events && events.length) {
+            applyData(events);
+            return;
+          }
+          startRefreshLoop(startTime);
+        }, interval);
+      }
+
+      /** Start: Hintergrund, ggf. Cache anzeigen, dann API/Fallback laden; bei useApi + Fehler Refresh-Loop. */
+      async function init() {
+        setBackgroundImage();
+        const scale = Math.max(0.5, Math.min(200, Number(ACTIVE_CONFIG.sizePercent) || 100)) / 100;
+        document.documentElement.style.setProperty("--dashboard-scale", String(scale));
+
+        const cachedRaw = loadFromCache();
+        if (cachedRaw) {
+          const events = extractEvents(cachedRaw);
+          if (events && events.length) {
+            console.info("Erste Anzeige aus Cache (letzter Ladevorgang).");
+            applyData(events);
+          }
+        } else {
+          updateQuotaDisplay(0);
+        }
+
+        const events = await loadEvents();
+        applyData(events || []);
+
+        if (!CONFIG.is_development && (!events || !events.length)) {
+          startRefreshLoop();
+        }
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        init().catch((err) => {
+          console.error("Initialization failed", err);
+        });
+      });
+    </script>
+  </body>
+</html>
