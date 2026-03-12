@@ -6,7 +6,8 @@
       const CONFIG = {
         // Datenquelle:
         // - Standard: lokale Export-JSON (z.B. für Entwicklung oder Offline-Nutzung)
-        // - Optional: per URL-Parameter ?data_source=... überschreibbar (z.B. ActivityWatch-API)
+        // - Optional: per URL-Parameter überschreibbar, z.B.
+        //   ?data_source=http://localhost:5600/api/0/export  (ActivityWatch-API)
         data_source: getDataSourceFromUrl() || "aw-buckets-export.json",
 
         // Muster (Regex, case-insensitive) für Kinder-Spiele.
