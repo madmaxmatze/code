@@ -1,52 +1,54 @@
 <!DOCTYPE html>
 <html lang="de">
   <head>
-    <meta charset="UTF-8" />
     <title>Spielzeit Übersicht</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!--
-      KONFIGURATION (CONFIG unten): is_development, data_source_production, data_source_development,
-      kidsPattern (Regex nur gegen Fenstertitel), backgroundImages (Array), monthlyQuotaHours,
-      monthsToShow (1–12).
-    -->
     <script>
       const CONFIG = {
-        // Entwicklungsmodus? true = development-Konfiguration, false = production-Konfiguration.
-        is_development: (location.hostname === "localhost"),
+        // Datenquelle:
+        // - Standard: lokale Export-JSON (z.B. für Entwicklung oder Offline-Nutzung)
+        // - Optional: per URL-Parameter ?data_source=... überschreibbar (z.B. ActivityWatch-API)
+        data_source: getDataSourceFromUrl() || "aw-buckets-export.json",
 
-        production: {
-          // ActivityWatch-API (z. B. Export eines Buckets).
-          data_source: "http://localhost:5600/api/0/export",
+        // Muster (Regex, case-insensitive) für Kinder-Spiele.
+        // Es wird gegen den Fenstertitel gematcht.
+        kidsPattern:
+          "Minecraft|Takes|Crashers|Planet|Fifa|Cat|Lego|Goat|Sackboy|Fiction|Sonic",
 
-          // Muster (Regex, case-insensitive) für Kinder-Spiele.
-          // Es wird gegen den Fenstertitel gematcht,
-          kidsPattern: "Minecraft|Takes|Crashers|Planet|Fifa|Cat|Lego|Goat|Sackboy|Fiction|Sonic",
+        // Background image files (URLs oder relative Pfade); eines wird zufällig gewählt.
+        backgroundImages: [
+          "https://w.wallhaven.cc/full/85/wallhaven-85qdpk.png",  // it takes two
+          "https://w.wallhaven.cc/full/4g/wallhaven-4gpvkq.jpg",  // wall-e
+          "https://w.wallhaven.cc/full/7j/wallhaven-7j38je.png",  // split fiction
+        ],
 
-          // Background image files (relative to this HTML file); eines wird zufällig gewählt.
-          backgroundImages: [
-            "https://variety.com/wp-content/uploads/2022/09/Pixar-Wall-E.jpg",
-          ],
+        // Monthly quota (in hours) for this PC.
+        monthlyQuotaHours: 10,
 
-          // Monthly quota (in hours) for this PC
-          monthlyQuotaHours: 10,
+        // Anzahl Monate für die unteren beiden Charts (Pro Jahr, Pro Jahr & Spiel).
+        // Letzte X Monate inkl. aktuellen (1–12). Weniger Monate = größere Balken.
+        monthsToShow: 12,
 
-          // Anzahl Monate für die unteren beiden Charts (Pro Jahr, Pro Jahr & Spiel).
-          // Letzte X Monate inkl. aktuellen (1–12). Weniger Monate = größere Balken.
-          monthsToShow: 12,
-
-          // Größe des gesamten Dashboards in Prozent (100 = aktuell, 120 = 20 % größer).
-          // Skaliert Box, Schrift und Charts proportional.
-          sizePercent: 100,
-        },
-
-        // Optionale Überschreibungen für die Entwicklung. Jeder hier gesetzte Wert
-        // überschreibt den entsprechenden Wert aus production, wenn is_development: true.
-        development: {
-          data_source: "aw-buckets-export.json"
-        },
+        // Größe des gesamten Dashboards in Prozent (100 = aktuell, 120 = 20 % größer).
+        // Skaliert Box, Schrift und Charts proportional.
+        sizePercent: 100,
       };
+
+      function getDataSourceFromUrl() {
+        try {
+          const params = new URLSearchParams(window.location.search || "");
+          const override = params.get("data_source");
+          if (override && override.trim()) {
+            return override.trim();
+          }
+        } catch (e) {
+          // Ignorieren, falls URLSearchParams nicht verfügbar ist.
+        }
+        return "";
+      }
     </script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Chart.js via cdnjs (https://cdnjs.cloudflare.com/) -->
     <!-- Hinweis: integrity entfernt, damit Browser die Datei nicht blockiert,
@@ -279,30 +281,31 @@
        *
        * DATENQUELLE:
        *   ActivityWatch (https://activitywatch.net). Es werden Fenster-Events ausgewertet
-       *   (typischerweise aw-watcher-window-Bucket; data_source_production sollte auf den Export dieses
-       *   Buckets zeigen, nicht nur aw-watcher-afk). Die API liefert Rohdaten (timestamp,
-       *   duration, data.app, data.title). Eine Kategorisierung wie „Media > GamesKids“
-       *   existiert in der Export-API nicht – sie wird nur in der Web-UI zur Laufzeit
-       *   berechnet. Daher filtern wir hier ausschließlich über ein Regex-Muster
-       *   (CONFIG.kidsPattern) gegen den Fenstertitel (nicht gegen data.app, um
-       *   System-Apps wie ApplicationFrameHost nicht zu treffen).
+       *   (typischerweise aw-watcher-window-Bucket; die data_source-URL sollte auf den
+       *   Export dieses Buckets zeigen, nicht nur aw-watcher-afk). Die API liefert
+       *   Rohdaten (timestamp, duration, data.app, data.title). Eine Kategorisierung
+       *   wie „Media > GamesKids“ existiert in der Export-API nicht – sie wird nur in
+       *   der Web-UI zur Laufzeit berechnet. Daher filtern wir hier ausschließlich
+       *   über ein Regex-Muster (CONFIG.kidsPattern) gegen den Fenstertitel (nicht
+       *   gegen data.app, um System-Apps wie ApplicationFrameHost nicht zu treffen).
        *
        * WICHTIGE ENTSCHEIDUNGEN:
        *   - Events kürzer als 10 Minuten werden ignoriert (Rauschen/Abweichungen).
-       *   - is_development: true → nur lokale Datei (data_source_development),
-       *     keine API-Aufrufe. is_development: false → primär API
-       *     (data_source_production), bei Fehler Fallback auf
-       *     data_source_development (falls gesetzt); nach Fehlern wird alle 10 s
-       *     erneut versucht, bis ein Ladevorgang gelingt.
+       *   - CONFIG.data_source: Standard-Datenquelle (z. B. lokale JSON für Entwicklung).
+       *     Kann per URL-Parameter ?data_source=... überschrieben werden
+       *     (z. B. ActivityWatch-API-URL). Bei HTTP(S)-Quellen wird bei Fehlern
+       *     automatisch erneut geladen (erste Minute alle 5 s, danach jede Minute).
        *   - CORS: Bei Origin "null" (file:// oder manche Desktophintergründe) blockiert
        *     der Browser API-Aufrufe. Dashboard dann per lokalem Webserver (z. B.
        *     http://localhost:8000) ausliefern und in ActivityWatch (config.toml:
        *     cors = ["http://localhost:8000"]) diese Origin erlauben.
        *   - Bei Start: zuerst Anzeige aus localStorage (falls vorhanden), dann
-       *     Ladeversuch API/Fallback; bei Erfolg wird in localStorage gespeichert.
+       *     Ladeversuch gegen data_source; bei Erfolg wird in localStorage gespeichert.
+       *   - „Aktuelles Datum“ basiert auf dem jüngsten Event im Datensatz, nicht auf
+       *     dem echten heutigen Datum, damit historische Exporte stabil bleiben.
        *
        * STRUKTUR:
-       *   CONFIG → loadFromCache / loadEvents (API oder data_source_development) →
+       *   CONFIG → loadFromCache / loadEvents (lädt CONFIG.data_source) →
        *   extractEvents (unterstützt buckets-Export und einzelne Bucket-Exports) →
        *   aggregate (Filter kidsPattern auf title, 10-min-Schwelle, Aufteilung nach
        *   Jahr/Monat/Tag, monthlyByYearMonth für variable Zeiträume) →
@@ -312,9 +315,9 @@
 
       function setBackgroundImage() {
         try {
-          if (ACTIVE_CONFIG && Array.isArray(ACTIVE_CONFIG.backgroundImages) && ACTIVE_CONFIG.backgroundImages.length) {
-            const idx = Math.floor(Math.random() * ACTIVE_CONFIG.backgroundImages.length);
-            const img = ACTIVE_CONFIG.backgroundImages[idx];
+          if (CONFIG && Array.isArray(CONFIG.backgroundImages) && CONFIG.backgroundImages.length) {
+            const idx = Math.floor(Math.random() * CONFIG.backgroundImages.length);
+            const img = CONFIG.backgroundImages[idx];
             document.body.style.backgroundImage = "url('" + img + "')";
           }
         } catch (err) {
@@ -352,19 +355,18 @@
         return Number(value || 0).toFixed(1);
       }
 
-      // Feste Definition des App-Feldes und der Kinder-Spiel-Filter.
-      const APP_FIELD = "app";
-      function getActiveConfig() {
-        const base = CONFIG.production || {};
-        const overrides = CONFIG.is_development && CONFIG.development
-          ? CONFIG.development
-          : {};
-        return { ...base, ...overrides };
+      function formatGameHours(raw) {
+        const n = Number(raw || 0);
+        if (!Number.isFinite(n)) return "0";
+        if (n < 1) {
+          return n.toFixed(1).replace(".", ",");
+        }
+        return String(Math.round(n));
       }
 
-      const ACTIVE_CONFIG = getActiveConfig();
-
-      const KIDS_REGEX = new RegExp(ACTIVE_CONFIG.kidsPattern, "i");
+      // Feste Definition des App-Feldes und der Kinder-Spiel-Filter.
+      const APP_FIELD = "app";
+      const KIDS_REGEX = new RegExp(CONFIG.kidsPattern, "i");
 
       function monthNameFromIndex(monthIndex) {
         return new Date(2000, monthIndex, 1).toLocaleString(undefined, {
@@ -412,51 +414,24 @@
         let sourceLabel = "";
         let raw;
 
-        if (CONFIG.is_development) {
-          // Entwicklungsmodus: nur lokale Datei, kein API-Fallback.
-          if (ACTIVE_CONFIG.data_source) {
-            try {
-              raw = await fetchJson(ACTIVE_CONFIG.data_source);
-              sourceLabel = "lokaler JSON-Export (Entwicklung)";
-              messages.push("Daten aus lokaler Entwicklungs-JSON geladen.");
-            } catch (fileError) {
-              const fileProtocolHint =
-                window.location.protocol === "file:"
-                  ? " Hinweis: Direktes Laden von JSON-Dateien per file:// wird von vielen Browsern blockiert. Bitte über einen lokalen Webserver (z. B. http://localhost) aufrufen."
-                  : "";
-              console.error(
-                "Konnte die Entwicklungs-JSON-Datei nicht laden." +
-                  fileProtocolHint,
-                fileError
-              );
-              return null;
-            }
-          } else {
-            console.error(
-              "CONFIG.is_development=true, aber development.data_source ist nicht gesetzt."
-            );
-            return null;
-          }
-        } else {
-          // Produktionsmodus: nur API, kein Fallback auf Entwicklungsdaten.
-          if (ACTIVE_CONFIG.data_source) {
-            try {
-              raw = await fetchJson(ACTIVE_CONFIG.data_source);
-              sourceLabel = "ActivityWatch-API";
-              messages.push("Daten von der lokalen ActivityWatch-API geladen.");
-            } catch (apiError) {
-              console.error(
-                "Konnte nicht von der ActivityWatch-API laden.",
-                apiError
-              );
-              return null;
-            }
-          } else {
-            console.error(
-              "CONFIG.is_development=false, aber production.data_source ist nicht gesetzt."
-            );
-            return null;
-          }
+        const source = CONFIG.data_source;
+        if (!source) {
+          console.error("Keine data_source konfiguriert (CONFIG.data_source fehlt).");
+          return null;
+        }
+        try {
+          raw = await fetchJson(source);
+          sourceLabel = source.startsWith("http")
+            ? "ActivityWatch-API"
+            : "lokaler JSON-Export";
+          messages.push("Datenquelle: " + source);
+        } catch (err) {
+          const fileProtocolHint =
+            window.location.protocol === "file:"
+              ? " Hinweis: Direktes Laden von JSON-Dateien per file:// wird von vielen Browsern blockiert. Bitte über einen lokalen Webserver (z. B. http://localhost) aufrufen."
+              : "";
+          console.error("Konnte data_source nicht laden." + fileProtocolHint, err);
+          return null;
         }
 
         saveToCache(raw);
@@ -481,7 +456,21 @@
         return events;
       }
 
-      /** Unterstützt sowohl kompletten Bucket-Export (raw.buckets) als auch einzelnen Bucket (raw.events). */
+      /**
+       * Unterstützt sowohl kompletten Bucket-Export (raw.buckets) als auch einzelne
+       * Buckets (Array mit .events oder direkt raw.events). Liefert ein flaches Array
+       * von Events der Form:
+       *
+       *   {
+       *     timestamp: string | number (ISO oder ms),
+       *     duration: number (Sekunden),
+       *     data: {
+       *       app?: string,
+       *       title?: string,
+       *       ...weitere Felder, die wir ignorieren
+       *     }
+       *   }
+       */
       function extractEvents(raw) {
         if (!raw) return [];
 
@@ -516,11 +505,41 @@
 
       /**
        * Filtert nach kidsPattern (nur auf data.title), ignoriert Events < 10 min,
-       * baut Strukturen für aktueller Monat (Tage), aktuelles Jahr (Monate) und
+       * baut Strukturen für „aktuellen“ Monat (Tage), „aktuelles“ Jahr (Monate) und
        * monthlyByYearMonth für aktuelles + Vorjahr (für variable „letzte X Monate“).
+       * „Aktuell“ bezieht sich dabei auf das jüngste Datum im Datensatz, nicht
+       * auf das echte heutige Datum, damit historische Exporte stabil bleiben.
+       */
+      function normalizeGameName(title, app) {
+        const baseName = title || app || "Unbekannt";
+        let gameKey = baseName
+          .replace(/\.exe/gi, "")
+          .replace(/Rafa/gi, "")
+          .replace(/Mateo/gi, "")
+          .replace(/^[\s-]+|[\s-]+$/g, "")
+          .trim();
+        if (/minecraft/i.test(gameKey)) {
+          gameKey = "Minecraft";
+        }
+        return gameKey || "Unbekannt";
+      }
+
+      /**
+       * Siehe oben – zentrale Aggregation der Events auf Tages-/Monats-/Jahresebene.
        */
       function aggregate(events) {
-        const now = new Date();
+        // „Jetzt“ = Zeitpunkt des jüngsten Events im Datensatz (unabhängig vom kidsPattern)
+        let latestTs = null;
+        for (const ev of events) {
+          if (!ev || !ev.timestamp) continue;
+          const candidate = new Date(ev.timestamp);
+          if (Number.isNaN(candidate.getTime())) continue;
+          if (!latestTs || candidate > latestTs) {
+            latestTs = candidate;
+          }
+        }
+
+        const now = latestTs || new Date();
         const currentYear = now.getFullYear();
         const currentMonthIndex = now.getMonth();
         const daysInCurrentMonth = getDaysInMonth(currentYear, currentMonthIndex);
@@ -573,19 +592,8 @@
             continue;
           }
 
-          // "Spielname" aus Titel/App ableiten: .exe entfernen, "Rafa"/"Mateo" raus, Rand trimmen
-          const baseName = title || app || "Unbekannt";
-          let gameKey = baseName
-            .replace(/\.exe/gi, "")
-            .replace(/Rafa/gi, "")
-            .replace(/Mateo/gi, "")
-            .replace(/^[\s-]+|[\s-]+$/g, "")
-            .trim();
-          // Alle Minecraft-Varianten auf einen gemeinsamen Namen mappen
-          if (/minecraft/i.test(gameKey)) {
-            gameKey = "Minecraft";
-          }
-          gameKey = gameKey || "Unbekannt";
+          // "Spielname" aus Titel/App ableiten (inkl. Minecraft-Normalisierung).
+          const gameKey = normalizeGameName(title, app);
 
           const start = ts.getTime();
           const end = start + ev.duration * 1000;
@@ -724,6 +732,12 @@
       let dailyChartInstance = null;
       let gamesChartInstance = null;
 
+      function isWeekend(year, monthIndex, dayOfMonth) {
+        const d = new Date(year, monthIndex, dayOfMonth);
+        const day = d.getDay();
+        return day === 0 || day === 6;
+      }
+
       /** Chart.js-Plugin: vertikale Hintergrundstreifen für Sa/So und eine rote Linie für „heute“ im Tages-Chart. */
       const weekendBackgroundPlugin = {
         id: "weekendBackground",
@@ -739,8 +753,7 @@
           const weekendColor = "rgba(100, 116, 139, 0.18)";
 
           for (let i = 0; i < daysInMonth; i++) {
-            const d = new Date(currentYear, currentMonthIndex, i + 1);
-            if (d.getDay() !== 0 && d.getDay() !== 6) continue;
+            if (!isWeekend(currentYear, currentMonthIndex, i + 1)) continue;
             const center = scale.getPixelForValue(i);
             const startX = center - step / 2;
             const width = step;
@@ -770,7 +783,7 @@
 
       /** Erstellt/aktualisiert alle drei Charts (Pro Monat, Pro Jahr, Pro Jahr & Spiel). */
       function renderCharts(agg) {
-        const X = Math.min(12, Math.max(1, Number(ACTIVE_CONFIG.monthsToShow) || 6));
+        const X = Math.min(12, Math.max(1, Number(CONFIG.monthsToShow) || 6));
         const currentYear = agg.currentYear;
         const currentMonthIndex = agg.currentMonthIndex;
         const lastXMonths = Array.from({ length: X }, (_, i) => {
@@ -871,7 +884,7 @@
                 // Quota-Höhe etwas heller und 2px stark, andere Linien wie gewohnt.
                 color: (ctx) => {
                   const v = ctx.tick && ctx.tick.value;
-                  const quota = ACTIVE_CONFIG.monthlyQuotaHours || 10;
+                  const quota = CONFIG.monthlyQuotaHours || 10;
                   if (Math.abs(Number(v) - quota) < 1e-6) {
                     return "rgba(248, 250, 252, 0.9)";
                   }
@@ -879,7 +892,7 @@
                 },
                 lineWidth: (ctx) => {
                   const v = ctx.tick && ctx.tick.value;
-                  const quota = ACTIVE_CONFIG.monthlyQuotaHours || 10;
+                  const quota = CONFIG.monthlyQuotaHours || 10;
                   if (Math.abs(Number(v) - quota) < 1e-6) {
                     return 2;
                   }
@@ -1025,14 +1038,7 @@
                 callbacks: {
                   label: (context) => {
                     const raw = Number(context.parsed.x || 0);
-                    const value =
-                      raw < 1
-                        ? Number(raw.toFixed(1))
-                        : Math.round(raw);
-                    const formatted =
-                      value % 1 === 0
-                        ? String(value)
-                        : value.toFixed(1).replace(".", ",");
+                    const formatted = formatGameHours(raw);
                     return `${context.label}: ${formatted} h`;
                   },
                 },
@@ -1086,7 +1092,7 @@
 
       /** Setzt Überschrift „X / 10 h gespielt“ und (ausgeblendeten) Fortschrittsbalken. */
       function updateQuotaDisplay(totalHoursThisMonth) {
-        const quota = ACTIVE_CONFIG.monthlyQuotaHours || 10;
+        const quota = CONFIG.monthlyQuotaHours || 10;
         const used = totalHoursThisMonth;
         const ratio = quota > 0 ? used / quota : 0;
         const percentage = Math.round(ratio * 100);
@@ -1127,7 +1133,7 @@
           if (currentHeading) currentHeading.textContent = monthLabel;
           const monthsToShowEmpty = Math.min(
             12,
-            Math.max(1, Number(ACTIVE_CONFIG.monthsToShow) || 6)
+            Math.max(1, Number(CONFIG.monthsToShow) || 6)
           );
           if (yearLabelEl)
             yearLabelEl.textContent =
@@ -1170,11 +1176,11 @@
 
         const monthsToShow = Math.min(
           12,
-          Math.max(1, Number(ACTIVE_CONFIG.monthsToShow) || 6)
+          Math.max(1, Number(CONFIG.monthsToShow) || 6)
         );
 
         // Gesamtstunden der letzten 12 Monate berechnen (unabhängig von monthsToShow)
-        const quotaPerMonth = ACTIVE_CONFIG.monthlyQuotaHours || 10;
+        const quotaPerMonth = CONFIG.monthlyQuotaHours || 10;
         const monthsBackForQuota = 12;
         const last12Months = Array.from(
           { length: monthsBackForQuota },
@@ -1214,11 +1220,11 @@
       }
 
       /**
-       * Nur im Produktionsmodus (is_development: false) und bei fehlgeschlagenem Ladevorgang:
+       * Nur wenn data_source eine HTTP(S)-URL ist und bei fehlgeschlagenem Ladevorgang:
        * automatisch neu versuchen – für die erste Minute alle 5 s, danach jede Minute.
        */
       function startRefreshLoop(startTime = Date.now()) {
-        if (CONFIG.is_development) return;
+        if (!CONFIG.data_source || !/^https?:/i.test(CONFIG.data_source)) return;
         const elapsed = Date.now() - startTime;
         const interval =
           elapsed < 60000
@@ -1237,7 +1243,7 @@
       /** Start: Hintergrund, ggf. Cache anzeigen, dann API/Fallback laden; bei useApi + Fehler Refresh-Loop. */
       async function init() {
         setBackgroundImage();
-        const scale = Math.max(0.5, Math.min(200, Number(ACTIVE_CONFIG.sizePercent) || 100)) / 100;
+        const scale = Math.max(0.5, Math.min(200, Number(CONFIG.sizePercent) || 100)) / 100;
         document.documentElement.style.setProperty("--dashboard-scale", String(scale));
 
         const cachedRaw = loadFromCache();
@@ -1254,7 +1260,7 @@
         const events = await loadEvents();
         applyData(events || []);
 
-        if (!CONFIG.is_development && (!events || !events.length)) {
+        if ((!events || !events.length) && CONFIG.data_source && /^https?:/i.test(CONFIG.data_source)) {
           startRefreshLoop();
         }
       }
