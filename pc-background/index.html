@@ -13,7 +13,7 @@
         // Muster (Regex, case-insensitive) für Kinder-Spiele.
         // Es wird gegen den Fenstertitel gematcht.
         kidsPattern:
-          "minecraft|takes|crashers|planet|fifa|cat|lego|goat|sackboy|fiction|sonic",
+          "minecraft|takes|crashers|planet|fifa|cat|lego|goat|sackboy|fiction|sonic|overcooked",
 
         // Background image files (URLs oder relative Pfade); eines wird zufällig gewählt.
         backgroundImages: [
@@ -44,6 +44,9 @@
         // Die tatsächliche Skalierung wird dynamisch berechnet, sodass das Panel auf verschiedenen
         // Bildschirmen und DPI-Einstellungen optisch ähnlich groß wirkt.
         sizePercent: 80,
+
+        // Intervall in Sekunden, in dem die Stats bei HTTP(S)-data_source neu geladen werden (z. B. 300 = 5 Min.).
+        refreshIntervalSeconds: 300,
       };
 
       function getDataSourceFromUrl() {
@@ -457,9 +460,9 @@
       }
 
       const AW_CACHE_KEY = "aw-kids-playtime-cache";
-      // Für Produktions-Retry: erste Minute alle 5 Sekunden, danach alle 60 Sekunden.
-      const AW_REFRESH_RETRY_SHORT_MS = 5000;
-      const AW_REFRESH_RETRY_LONG_MS = 60000;
+      /** Erste X Sekunden: schneller Refresh (z. B. nach Seitenstart); danach refreshIntervalSeconds. */
+      const AW_REFRESH_QUICK_WINDOW_MS = 60 * 1000;
+      const AW_REFRESH_QUICK_INTERVAL_MS = 5 * 1000;
 
       function updateDevBadgeVisibility() {
         const badge = document.getElementById("dev-badge");
@@ -629,6 +632,8 @@
         const currentYear = now.getFullYear();
         const currentMonthIndex = now.getMonth();
         const daysInCurrentMonth = getDaysInMonth(currentYear, currentMonthIndex);
+        /** Tag des Monats des jüngsten Events (für rote „heute“-Linie, datenbasiert statt Kalender). */
+        const currentDayOfMonth = now.getDate();
 
         const monthlyByApp = Array.from({ length: 12 }, () =>
           Object.create(null)
@@ -793,6 +798,7 @@
           currentYear,
           currentMonthIndex,
           daysInCurrentMonth,
+          currentDayOfMonth,
           matchedEvents,
           totalByAppThisMonth,
         };
@@ -1005,11 +1011,7 @@
               currentYear: agg.currentYear,
               currentMonthIndex: agg.currentMonthIndex,
               daysInMonth: agg.daysInCurrentMonth,
-              todayDay:
-                agg.currentYear === new Date().getFullYear() &&
-                agg.currentMonthIndex === new Date().getMonth()
-                  ? new Date().getDate()
-                  : null,
+              todayDay: agg.currentDayOfMonth ?? null,
             },
             tooltip: {
               callbacks: {
@@ -1239,6 +1241,7 @@
             currentYear,
             currentMonthIndex,
             daysInCurrentMonth,
+            currentDayOfMonth: now.getDate(),
             matchedEvents: 0,
             totalByAppThisMonth: {},
           };
@@ -1314,24 +1317,28 @@
       }
 
       /**
-       * Nur wenn data_source eine HTTP(S)-URL ist und bei fehlgeschlagenem Ladevorgang:
-       * automatisch neu versuchen – für die erste Minute alle 5 s, danach jede Minute.
+       * Bei HTTP(S)-data_source: Ein einziger Refresh-Loop.
+       * Erste 60 s: alle 5 s versuchen, bis Daten geladen sind oder 1 Min um ist.
+       * Danach immer refreshIntervalSeconds (z. B. 300 s), unabhängig davon ob vorher Erfolg war.
        */
       function startRefreshLoop(startTime = Date.now()) {
         if (!CONFIG.data_source || !/^https?:/i.test(CONFIG.data_source)) return;
         const elapsed = Date.now() - startTime;
-        const interval =
-          elapsed < 60000
-            ? AW_REFRESH_RETRY_SHORT_MS
-            : AW_REFRESH_RETRY_LONG_MS;
+        const intervalMs =
+          elapsed < AW_REFRESH_QUICK_WINDOW_MS
+            ? AW_REFRESH_QUICK_INTERVAL_MS
+            : Math.max(60000, (Number(CONFIG.refreshIntervalSeconds) || 300) * 1000);
+        const isLongPeriod = intervalMs !== AW_REFRESH_QUICK_INTERVAL_MS;
         setTimeout(async () => {
           const events = await loadEvents();
           if (events && events.length) {
             applyData(events);
-            return;
+          }
+          if (isLongPeriod) {
+            setBackgroundImage();
           }
           startRefreshLoop(startTime);
-        }, interval);
+        }, intervalMs);
       }
 
       /** Start: Hintergrund, ggf. Cache anzeigen, dann API/Fallback laden; bei useApi + Fehler Refresh-Loop. */
@@ -1354,9 +1361,7 @@
         const events = await loadEvents();
         applyData(events || []);
 
-        if ((!events || !events.length) && CONFIG.data_source && /^https?:/i.test(CONFIG.data_source)) {
-          startRefreshLoop();
-        }
+        startRefreshLoop();
 
         window.addEventListener("resize", () => {
           requestAnimationFrame(updatePanelScaleToHeight);
