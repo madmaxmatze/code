@@ -603,8 +603,10 @@
         const baseName = title || app || "Unbekannt";
         let gameKey = baseName
           .replace(/\.exe/gi, "")
+          .replace(/\s*\([^)]*\)/g, "")
           .replace(/Rafa/gi, "")
           .replace(/Mateo/gi, "")
+          .replace(/\s{2,}/g, " ")
           .replace(/^[\s-]+|[\s-]+$/g, "")
           .trim();
         if (/minecraft/i.test(gameKey)) {
