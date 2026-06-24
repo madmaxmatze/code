@@ -500,9 +500,10 @@
       }
 
       const AW_CACHE_KEY = "aw-kids-playtime-cache";
-      /** Erste X Sekunden: schneller Refresh (z. B. nach Seitenstart); danach refreshIntervalSeconds. */
+      /** Schneller Retry nur bis der erste HTTP-Ladevorgang klappt (max. 60 s). */
       const AW_REFRESH_QUICK_WINDOW_MS = 60 * 1000;
       const AW_REFRESH_QUICK_INTERVAL_MS = 5 * 1000;
+      let dataSourceLoadSucceeded = false;
 
       function updateDevBadgeVisibility() {
         const badge = document.getElementById("dev-badge");
@@ -1401,21 +1402,26 @@
       }
 
       /**
-       * Bei HTTP(S)-data_source: Ein einziger Refresh-Loop.
-       * Erste 60 s: alle 5 s versuchen, bis Daten geladen sind oder 1 Min um ist.
-       * Danach immer refreshIntervalSeconds (z. B. 300 s), unabhängig davon ob vorher Erfolg war.
+       * Bei HTTP(S)-data_source: periodisch neu laden.
+       * Schnell-Retry (5 s) nur bis zum ersten erfolgreichen Fetch, max. 60 s.
+       * Danach refreshIntervalSeconds (Standard 300 s).
        */
       function startRefreshLoop(startTime = Date.now()) {
         if (!CONFIG.data_source || !/^https?:/i.test(CONFIG.data_source)) return;
         const elapsed = Date.now() - startTime;
-        const intervalMs =
-          elapsed < AW_REFRESH_QUICK_WINDOW_MS
-            ? AW_REFRESH_QUICK_INTERVAL_MS
-            : Math.max(60000, (Number(CONFIG.refreshIntervalSeconds) || 300) * 1000);
-        const isLongPeriod = intervalMs !== AW_REFRESH_QUICK_INTERVAL_MS;
+        const useQuickRetry =
+          !dataSourceLoadSucceeded && elapsed < AW_REFRESH_QUICK_WINDOW_MS;
+        const intervalMs = useQuickRetry
+          ? AW_REFRESH_QUICK_INTERVAL_MS
+          : Math.max(
+              60000,
+              (Number(CONFIG.refreshIntervalSeconds) || 300) * 1000
+            );
+        const isLongPeriod = !useQuickRetry;
         setTimeout(async () => {
           const events = await loadEvents();
           if (events && events.length) {
+            dataSourceLoadSucceeded = true;
             applyData(events);
           }
           if (isLongPeriod) {
@@ -1444,6 +1450,9 @@
         }
 
         const events = await loadEvents();
+        if (events && events.length) {
+          dataSourceLoadSucceeded = true;
+        }
         applyData(events || []);
 
         startRefreshLoop();
