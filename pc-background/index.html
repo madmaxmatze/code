@@ -33,8 +33,13 @@
           "https://images6.alphacoders.com/139/thumb-1920-1399082.jpg",  // g.o.a.t.
         ],
 
-        // Monthly quota (in hours) for this PC.
-        monthlyQuotaHours: 10,
+        // Monatskontingente (Stunden), aufsteigend nach Jahr/Monat.
+        // Jeder Eintrag gilt ab diesem Monat (inkl.) bis zum nächsten Eintrag.
+        // Jahresbudget = Summe der Monatskontingente im betrachteten Zeitraum.
+        monthlyQuotaHours: [
+          { year: 2025, month: 1, hours: 10 },
+          { year: 2026, month: 6, hours: 12 },
+        ],
 
         // Anzahl Monate für die unteren beiden Charts (Pro Jahr, Pro Jahr & Spiel).
         // Letzte X Monate inkl. aktuellen (1–12). Weniger Monate = größere Balken.
@@ -459,6 +464,41 @@
         return new Date(year, monthIndex + 1, 0).getDate();
       }
 
+      /** Monatskontingent für Jahr + Monat (monthIndex 0 = Januar). */
+      function getMonthlyQuotaHours(year, monthIndex) {
+        const rules = CONFIG.monthlyQuotaHours;
+        if (!Array.isArray(rules) || !rules.length) return 10;
+
+        const targetKey = year * 12 + monthIndex;
+        const sorted = rules
+          .map((r) => ({
+            key: Number(r.year) * 12 + (Number(r.month) - 1),
+            hours: Number(r.hours),
+          }))
+          .filter((r) => Number.isFinite(r.key) && Number.isFinite(r.hours))
+          .sort((a, b) => a.key - b.key);
+
+        if (!sorted.length) return 10;
+
+        let hours = sorted[0].hours;
+        for (const rule of sorted) {
+          if (rule.key <= targetKey) {
+            hours = rule.hours;
+          } else {
+            break;
+          }
+        }
+        return hours;
+      }
+
+      function sumQuotaForMonths(months) {
+        return months.reduce(
+          (sum, { year, monthIndex }) =>
+            sum + getMonthlyQuotaHours(year, monthIndex),
+          0
+        );
+      }
+
       const AW_CACHE_KEY = "aw-kids-playtime-cache";
       /** Erste X Sekunden: schneller Refresh (z. B. nach Seitenstart); danach refreshIntervalSeconds. */
       const AW_REFRESH_QUICK_WINDOW_MS = 60 * 1000;
@@ -875,6 +915,58 @@
       };
       Chart.register(weekendBackgroundPlugin);
 
+      /** Chart.js-Plugin: gestufte Quota-Linie pro Monat im Jahres-Chart (10h → 12h etc.). */
+      const monthlyQuotaStepLinePlugin = {
+        id: "monthlyQuotaStepLine",
+        afterDatasetsDraw(chart) {
+          const cfg = chart.options.plugins?.monthlyQuotaStepLine;
+          if (!cfg || !Array.isArray(cfg.months) || !cfg.months.length) return;
+
+          const xScale = chart.scales.x;
+          const yScale = chart.scales.y;
+          if (!xScale || !yScale) return;
+
+          const months = cfg.months;
+          const n = months.length;
+          const step =
+            n > 1
+              ? xScale.getPixelForValue(1) - xScale.getPixelForValue(0)
+              : 40;
+          const half = step / 2;
+
+          const ctx = chart.ctx;
+          ctx.save();
+          ctx.strokeStyle = "rgba(248, 250, 252, 0.9)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+
+          for (let i = 0; i < n; i++) {
+            const { year, monthIndex } = months[i];
+            const quota = getMonthlyQuotaHours(year, monthIndex);
+            const y = yScale.getPixelForValue(quota);
+            const xCenter = xScale.getPixelForValue(i);
+            const xLeft = xCenter - half;
+            const xRight = xCenter + half;
+
+            if (i === 0) {
+              ctx.moveTo(xLeft, y);
+            } else {
+              const prev = months[i - 1];
+              const prevY = yScale.getPixelForValue(
+                getMonthlyQuotaHours(prev.year, prev.monthIndex)
+              );
+              ctx.lineTo(xLeft, prevY);
+              ctx.lineTo(xLeft, y);
+            }
+            ctx.lineTo(xRight, y);
+          }
+
+          ctx.stroke();
+          ctx.restore();
+        },
+      };
+      Chart.register(monthlyQuotaStepLinePlugin);
+
       /** Erstellt/aktualisiert alle drei Charts (Pro Monat, Pro Jahr, Pro Jahr & Spiel). */
       function renderCharts(agg) {
         const X = Math.min(12, Math.max(1, Number(CONFIG.monthsToShow) || 6));
@@ -964,6 +1056,9 @@
           ...commonOptions,
           plugins: {
             ...commonOptions.plugins,
+            monthlyQuotaStepLine: {
+              months: lastXMonths,
+            },
           },
           scales: {
             x: commonOptions.scales.x,
@@ -974,23 +1069,7 @@
                 callback: (value) => String(Math.round(value)) + "h",
               },
               grid: {
-                // Quota-Höhe etwas heller und 2px stark, andere Linien wie gewohnt.
-                color: (ctx) => {
-                  const v = ctx.tick && ctx.tick.value;
-                  const quota = CONFIG.monthlyQuotaHours || 10;
-                  if (Math.abs(Number(v) - quota) < 1e-6) {
-                    return "rgba(248, 250, 252, 0.9)";
-                  }
-                  return "rgba(148, 163, 184, 0.25)";
-                },
-                lineWidth: (ctx) => {
-                  const v = ctx.tick && ctx.tick.value;
-                  const quota = CONFIG.monthlyQuotaHours || 10;
-                  if (Math.abs(Number(v) - quota) < 1e-6) {
-                    return 2;
-                  }
-                  return 1;
-                },
+                color: "rgba(148, 163, 184, 0.25)",
               },
               border: {
                 display: false,
@@ -1174,7 +1253,7 @@
           options: dailyOptions,
         });
 
-        // Pro Jahr (mittlerer Chart): Stunden pro Monat (letzte X Monate); Quota-Linie über y.grid hervorgehoben
+        // Pro Jahr (mittlerer Chart): Stunden pro Monat (letzte X Monate); gestufte Quota-Linie per Plugin
         dailyChartInstance = new Chart(dailyCtx, {
           type: "bar",
           data: {
@@ -1185,9 +1264,9 @@
         });
       }
 
-      /** Setzt Überschrift „X / 10 h gespielt“ und (ausgeblendeten) Fortschrittsbalken. */
-      function updateQuotaDisplay(totalHoursThisMonth) {
-        const quota = CONFIG.monthlyQuotaHours || 10;
+      /** Setzt Überschrift „X / N h gespielt“ und (ausgeblendeten) Fortschrittsbalken. */
+      function updateQuotaDisplay(totalHoursThisMonth, year, monthIndex) {
+        const quota = getMonthlyQuotaHours(year, monthIndex);
         const used = totalHoursThisMonth;
         const ratio = quota > 0 ? used / quota : 0;
         const percentage = Math.round(ratio * 100);
@@ -1216,7 +1295,7 @@
         const currentMonthIndex = now.getMonth();
         const daysInCurrentMonth = getDaysInMonth(currentYear, currentMonthIndex);
         if (!events || !events.length) {
-          updateQuotaDisplay(0);
+          updateQuotaDisplay(0, currentYear, currentMonthIndex);
           const monthDate = new Date(currentYear, currentMonthIndex, 1);
           const monthLabel = monthDate.toLocaleString("de-DE", {
             month: "long",
@@ -1256,7 +1335,7 @@
           console.warn(
             'Keine Spiele für das Muster "' + CONFIG.kidsPattern + '" gefunden.'
           );
-          updateQuotaDisplay(0);
+          updateQuotaDisplay(0, agg.currentYear, agg.currentMonthIndex);
           renderCharts(agg);
           requestAnimationFrame(updatePanelScaleToHeight);
           return;
@@ -1278,7 +1357,6 @@
         );
 
         // Gesamtstunden der letzten 12 Monate berechnen (unabhängig von monthsToShow)
-        const quotaPerMonth = CONFIG.monthlyQuotaHours || 10;
         const monthsBackForQuota = 12;
         const last12Months = Array.from(
           { length: monthsBackForQuota },
@@ -1303,7 +1381,7 @@
             hoursLast12 += h;
           }
         }
-        const quotaLast12 = quotaPerMonth * monthsBackForQuota;
+        const quotaLast12 = sumQuotaForMonths(last12Months);
         const last12Summary =
           Math.round(hoursLast12) + " / " + quotaLast12 + "h";
 
@@ -1313,7 +1391,11 @@
         if (yearSummaryEl) {
           yearSummaryEl.textContent = last12Summary;
         }
-        updateQuotaDisplay(agg.totalHoursThisMonth);
+        updateQuotaDisplay(
+          agg.totalHoursThisMonth,
+          agg.currentYear,
+          agg.currentMonthIndex
+        );
         renderCharts(agg);
         requestAnimationFrame(updatePanelScaleToHeight);
       }
@@ -1357,7 +1439,8 @@
             applyData(events);
           }
         } else {
-          updateQuotaDisplay(0);
+          const now = new Date();
+          updateQuotaDisplay(0, now.getFullYear(), now.getMonth());
         }
 
         const events = await loadEvents();
