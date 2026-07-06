@@ -3,6 +3,51 @@
   <head>
     <title>Spielzeit Übersicht</title>
     <script>
+      /**
+       * =============================================================================
+       * SPIELZEIT-DASHBOARD – Kontext für zukünftige Weiterentwicklung
+       * =============================================================================
+       *
+       * ZWECK:
+       *   Dieses Dashboard zeigt die Spielzeit von Kindern auf einem Gaming-PC.
+       *   Es wird als Webseite im Hintergrund (z. B. via „Website als Desktophintergrund“)
+       *   angezeigt, damit die Kinder auf einen Blick sehen: Stunden diesen Monat,
+       *   Verlauf pro Tag/Monat, und welche Spiele wie viel Zeit verbraucht haben.
+       *
+       * DATENQUELLE:
+       *   ActivityWatch (https://activitywatch.net). Es werden Fenster-Events ausgewertet
+       *   (typischerweise aw-watcher-window-Bucket; die data_source-URL sollte auf den
+       *   Export dieses Buckets zeigen, nicht nur aw-watcher-afk). Die API liefert
+       *   Rohdaten (timestamp, duration, data.app, data.title). Eine Kategorisierung
+       *   wie „Media > GamesKids“ existiert in der Export-API nicht – sie wird nur in
+       *   der Web-UI zur Laufzeit berechnet. Daher filtern wir hier ausschließlich
+       *   über ein Regex-Muster (CONFIG.kidsPattern) gegen den Fenstertitel (nicht
+       *   gegen data.app, um System-Apps wie ApplicationFrameHost nicht zu treffen).
+       *
+       * WICHTIGE ENTSCHEIDUNGEN:
+       *   - Events kürzer als 10 Minuten werden ignoriert (Rauschen/Abweichungen).
+       *   - CONFIG.data_source: Standard-Datenquelle (z. B. lokale JSON für Entwicklung).
+       *     Kann per URL-Parameter ?data_source=... überschrieben werden
+       *     (z. B. ActivityWatch-API-URL). Bei HTTP(S)-Quellen wird bei Fehlern
+       *     automatisch erneut geladen (erste Minute alle 5 s, danach jede Minute).
+       *   - CORS: Bei Origin "null" (file:// oder manche Desktophintergründe) blockiert
+       *     der Browser API-Aufrufe. Dashboard dann per lokalem Webserver (z. B.
+       *     http://localhost:8000) ausliefern und in ActivityWatch (config.toml:
+       *     cors = ["http://localhost:8000"]) diese Origin erlauben.
+       *   - Bei Start: zuerst Anzeige aus localStorage (falls vorhanden), dann
+       *     Ladeversuch gegen data_source; bei Erfolg wird in localStorage gespeichert.
+       *   - „Aktuelles Datum“ basiert auf dem jüngsten Event im Datensatz, nicht auf
+       *     dem echten heutigen Datum, damit historische Exporte stabil bleiben.
+       *
+       * STRUKTUR:
+       *   CONFIG → loadFromCache / loadEvents (lädt CONFIG.data_source) →
+       *   extractEvents (unterstützt buckets-Export und einzelne Bucket-Exports) →
+       *   aggregate (Filter kidsPattern auf title, 10-min-Schwelle, Aufteilung nach
+       *   Jahr/Monat/Tag, monthlyByYearMonth für variable Zeiträume) →
+       *   applyData → updateQuotaDisplay + renderCharts (Chart.js: Pro Monat,
+       *   Pro Jahr, Pro Jahr & Spiel; Wochenenden im ersten Chart per Plugin).
+       */
+
       const CONFIG = {
         // Datenquelle:
         // - Standard: Export-JSON (z.B. für Entwicklung oder Offline-Nutzung)
@@ -307,51 +352,6 @@
       </div>
 
     <script>
-      /**
-       * =============================================================================
-       * SPIELZEIT-DASHBOARD – Kontext für zukünftige Weiterentwicklung
-       * =============================================================================
-       *
-       * ZWECK:
-       *   Dieses Dashboard zeigt die Spielzeit von Kindern auf einem Gaming-PC.
-       *   Es wird als Webseite im Hintergrund (z. B. via „Website als Desktophintergrund“)
-       *   angezeigt, damit die Kinder auf einen Blick sehen: Stunden diesen Monat,
-       *   Verlauf pro Tag/Monat, und welche Spiele wie viel Zeit verbraucht haben.
-       *
-       * DATENQUELLE:
-       *   ActivityWatch (https://activitywatch.net). Es werden Fenster-Events ausgewertet
-       *   (typischerweise aw-watcher-window-Bucket; die data_source-URL sollte auf den
-       *   Export dieses Buckets zeigen, nicht nur aw-watcher-afk). Die API liefert
-       *   Rohdaten (timestamp, duration, data.app, data.title). Eine Kategorisierung
-       *   wie „Media > GamesKids“ existiert in der Export-API nicht – sie wird nur in
-       *   der Web-UI zur Laufzeit berechnet. Daher filtern wir hier ausschließlich
-       *   über ein Regex-Muster (CONFIG.kidsPattern) gegen den Fenstertitel (nicht
-       *   gegen data.app, um System-Apps wie ApplicationFrameHost nicht zu treffen).
-       *
-       * WICHTIGE ENTSCHEIDUNGEN:
-       *   - Events kürzer als 10 Minuten werden ignoriert (Rauschen/Abweichungen).
-       *   - CONFIG.data_source: Standard-Datenquelle (z. B. lokale JSON für Entwicklung).
-       *     Kann per URL-Parameter ?data_source=... überschrieben werden
-       *     (z. B. ActivityWatch-API-URL). Bei HTTP(S)-Quellen wird bei Fehlern
-       *     automatisch erneut geladen (erste Minute alle 5 s, danach jede Minute).
-       *   - CORS: Bei Origin "null" (file:// oder manche Desktophintergründe) blockiert
-       *     der Browser API-Aufrufe. Dashboard dann per lokalem Webserver (z. B.
-       *     http://localhost:8000) ausliefern und in ActivityWatch (config.toml:
-       *     cors = ["http://localhost:8000"]) diese Origin erlauben.
-       *   - Bei Start: zuerst Anzeige aus localStorage (falls vorhanden), dann
-       *     Ladeversuch gegen data_source; bei Erfolg wird in localStorage gespeichert.
-       *   - „Aktuelles Datum“ basiert auf dem jüngsten Event im Datensatz, nicht auf
-       *     dem echten heutigen Datum, damit historische Exporte stabil bleiben.
-       *
-       * STRUKTUR:
-       *   CONFIG → loadFromCache / loadEvents (lädt CONFIG.data_source) →
-       *   extractEvents (unterstützt buckets-Export und einzelne Bucket-Exports) →
-       *   aggregate (Filter kidsPattern auf title, 10-min-Schwelle, Aufteilung nach
-       *   Jahr/Monat/Tag, monthlyByYearMonth für variable Zeiträume) →
-       *   applyData → updateQuotaDisplay + renderCharts (Chart.js: Pro Monat,
-       *   Pro Jahr, Pro Jahr & Spiel; Wochenenden im ersten Chart per Plugin).
-       */
-
       function setBackgroundImage() {
         try {
           if (CONFIG && Array.isArray(CONFIG.backgroundImages) && CONFIG.backgroundImages.length) {
