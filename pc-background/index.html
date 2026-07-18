@@ -308,9 +308,13 @@
         color: #cbd5e1;
       }
 
+      .stacked-bar-tooltip-separator td {
+        padding: 0.28rem 0 0 0;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+      }
+
       .stacked-bar-tooltip-total td {
         padding-top: 0.28rem;
-        border-top: 1px solid rgba(148, 163, 184, 0.35);
       }
 
       .stacked-bar-tooltip-total .stacked-bar-tooltip-name,
@@ -1031,6 +1035,7 @@
               </tr>`;
             });
             if (showTotal) {
+              html += `<tr class="stacked-bar-tooltip-separator"><td colspan="3"></td></tr>`;
               html += `<tr class="stacked-bar-tooltip-total">
                 <td class="stacked-bar-tooltip-color"></td>
                 <td class="stacked-bar-tooltip-name">${escapeHtml(totalPrefix)}</td>
