@@ -93,7 +93,7 @@
         // Ziel-Höhe des Dashboards in Prozent der Fensterhöhe (z. B. 40 = ca. 40 % Bildschirmhöhe).
         // Die tatsächliche Skalierung wird dynamisch berechnet, sodass das Panel auf verschiedenen
         // Bildschirmen und DPI-Einstellungen optisch ähnlich groß wirkt.
-        sizePercent: 80,
+        sizePercent: 90,
 
         // Intervall in Sekunden, in dem die Stats bei HTTP(S)-data_source neu geladen werden (z. B. 300 = 5 Min.).
         refreshIntervalSeconds: 300,
@@ -490,7 +490,7 @@
         if (currentHeight <= 0) return;
 
         let scale = targetHeight / currentHeight;
-        scale = Math.max(0.5, Math.min(2, scale));
+        scale = Math.max(0.5, Math.min(3, scale));
 
         root.style.setProperty("--dashboard-scale", String(scale));
 
@@ -1138,6 +1138,31 @@
       };
       Chart.register(weekendBackgroundPlugin);
 
+      /** Chart.js-Plugin: hellere horizontale Ziel-Linie (z. B. 60 min/Tag) im Tages-Chart. */
+      const dailyTargetLinePlugin = {
+        id: "dailyTargetLine",
+        afterDatasetsDraw(chart) {
+          const cfg = chart.options.plugins?.dailyTargetLine;
+          if (!cfg || typeof cfg.value !== "number") return;
+          const yScale = chart.scales.y;
+          if (!yScale) return;
+          const chartArea = chart.chartArea;
+          const y = yScale.getPixelForValue(cfg.value);
+          if (y < chartArea.top || y > chartArea.bottom) return;
+
+          const ctx = chart.ctx;
+          ctx.save();
+          ctx.strokeStyle = cfg.color || "rgba(226, 232, 240, 0.8)";
+          ctx.lineWidth = cfg.lineWidth || 1.5;
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y);
+          ctx.lineTo(chartArea.right, y);
+          ctx.stroke();
+          ctx.restore();
+        },
+      };
+      Chart.register(dailyTargetLinePlugin);
+
       /** Chart.js-Plugin: gestufte Quota-Linie pro Monat im Jahres-Chart (10h → 12h etc.). */
       const monthlyQuotaStepLinePlugin = {
         id: "monthlyQuotaStepLine",
@@ -1159,7 +1184,7 @@
 
           const ctx = chart.ctx;
           ctx.save();
-          ctx.strokeStyle = "rgba(248, 250, 252, 0.9)";
+          ctx.strokeStyle = "rgba(240, 245, 250, 0.65)";
           ctx.lineWidth = 2;
           ctx.beginPath();
 
@@ -1325,6 +1350,12 @@
               currentMonthIndex: agg.currentMonthIndex,
               daysInMonth: agg.daysInCurrentMonth,
               todayDay: agg.currentDayOfMonth ?? null,
+            },
+            // Grober Tagesrichtwert: 60 min als horizontale Budget-Linie.
+            dailyTargetLine: {
+              value: 60,
+              color: "rgba(240, 245, 250, 0.65)",
+              lineWidth: 1.5,
             },
             tooltip: createStackedBarTooltipConfig({
               formatValue: (value) => `${Math.round(value)} min`,
