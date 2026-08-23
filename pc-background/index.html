@@ -45,7 +45,7 @@
        *   aggregate (Filter kidsPattern auf title, 10-min-Schwelle, Aufteilung nach
        *   Jahr/Monat/Tag, monthlyByYearMonth für variable Zeiträume) →
        *   applyData → updateQuotaDisplay + renderCharts (Chart.js: Pro Monat,
-       *   Pro Jahr, Pro Jahr & Spiel; Wochenenden im ersten Chart per Plugin).
+       *   Pro Jahr, Pro Jahr & Spiel; Spiele unter 3h als Honarable Mentions).
        */
 
       const CONFIG = {
@@ -58,7 +58,7 @@
         // Muster (Regex, case-insensitive) für Kinder-Spiele.
         // Es wird gegen den Fenstertitel gematcht.
         kidsPattern:
-          "minecraft|takes|crashers|planet|fifa|cat|lego|goat|sackboy|fiction|sonic|overcooked|brawlstars|brothers|gigabash|nba|rocket|fortnite|hypercharge|wreckfest|orcs",
+          "minecraft|takes|crashers|planet|fifa|cat|lego|goat|sackboy|fiction|sonic|overcooked|brawlstars|brothers|gigabash|nba|rocket|fortnite|hypercharge|wreckfest|orcs|retimed",
 
         // Background image files (URLs oder relative Pfade); eines wird zufällig gewählt.
         backgroundImages: [
@@ -89,6 +89,10 @@
         // Anzahl Monate für die unteren beiden Charts (Pro Jahr, Pro Jahr & Spiel).
         // Letzte X Monate inkl. aktuellen (1–12). Weniger Monate = größere Balken.
         monthsToShow: 12,
+
+        // Spiele-Diagramm: mindestens highlightMinHours in den letzten X Monaten.
+        // Darunter → „Honarable Mentions“ (Tags mit Spielzeit nur als Tooltip).
+        highlightMinHours: 3,
 
         // Ziel-Höhe des Dashboards in Prozent der Fensterhöhe (z. B. 40 = ca. 40 % Bildschirmhöhe).
         // Die tatsächliche Skalierung wird dynamisch berechnet, sodass das Panel auf verschiedenen
@@ -243,12 +247,42 @@
         display: none;
       }
 
-      .chart-block {
+      #section-honorable {
+        display: none;
+        position: relative;
+      }
+
+      .honorable-mentions-list {
+        margin: 0.35rem 0 0 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+
+      .chart-block,
+      .honorable-mentions-list .game-tag {
         background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(30, 64, 175, 0.35);
+        box-sizing: border-box;
+      }
+
+      .honorable-mentions-list .game-tag {
+        display: inline-block;
+        max-width: 100%;
+        padding: 0.28rem 0.55rem;
+        border-radius: 8px;
+        color: #cbd5e1;
+        font-size: 0.75rem;
+        font-weight: 400;
+        line-height: 1.3;
+        white-space: nowrap;
+        cursor: default;
+      }
+
+      .chart-block {
         border-radius: 12px;
         padding: 0.55rem 0.7rem 0.6rem 0.7rem;
-        box-sizing: border-box;
-        border: 1px solid rgba(30, 64, 175, 0.35);
         position: relative;
       }
 
@@ -417,6 +451,14 @@
               </div>
             </div>
           </div>
+
+          <div id="section-honorable">
+            <div class="section-heading section-heading-with-quota">
+              <span>Honarable Mentions</span>
+              <span class="quota-inline">länger her / zu kurz gespielt</span>
+            </div>
+            <div class="honorable-mentions-list" id="honorable-mentions-list"></div>
+          </div>
         </div>
 
         <div id="status"></div>
@@ -522,6 +564,54 @@
       /** Anzahl Monate für die unteren Charts, auf 1–12 geklemmt (Default 6). */
       function getMonthsToShow() {
         return Math.min(12, Math.max(1, Number(CONFIG.monthsToShow) || 6));
+      }
+
+      function getHighlightMinHours() {
+        const n = Number(CONFIG.highlightMinHours);
+        return Number.isFinite(n) && n >= 0 ? n : 3;
+      }
+
+      /** ≥ highlightMinHours (letzte X Monate) ins Diagramm, Rest unter Honarable Mentions. */
+      function splitGamesForDisplay(appsWithTime) {
+        const minHours = getHighlightMinHours();
+        return {
+          highlighted: appsWithTime.filter((e) => e.hours >= minHours),
+          mentions: appsWithTime.filter((e) => e.hours < minHours),
+        };
+      }
+
+      function renderHonorableMentions(mentions) {
+        const section = document.getElementById("section-honorable");
+        const listEl = document.getElementById("honorable-mentions-list");
+        if (!section || !listEl) return;
+
+        listEl.innerHTML = "";
+        hideFloatingTooltip(section);
+        if (!mentions.length) {
+          section.style.display = "none";
+          return;
+        }
+
+        mentions.forEach((entry) => {
+          const tag = document.createElement("span");
+          tag.className = "game-tag";
+          tag.textContent = String(entry.app || "").replace(/\.exe$/i, "");
+          const hoursText = formatHours(entry.hours) + " h";
+          tag.addEventListener("mouseenter", () => {
+            const sectionRect = section.getBoundingClientRect();
+            const tagRect = tag.getBoundingClientRect();
+            showFloatingTooltip(
+              section,
+              hoursText,
+              tagRect.left - sectionRect.left + tagRect.width / 2,
+              tagRect.top - sectionRect.top,
+              { asText: true }
+            );
+          });
+          tag.addEventListener("mouseleave", () => hideFloatingTooltip(section));
+          listEl.appendChild(tag);
+        });
+        section.style.display = "block";
       }
 
       // Feste Definition des App-Feldes und der Kinder-Spiel-Filter.
@@ -945,13 +1035,49 @@
         return backgroundColor || item.element?.options?.backgroundColor || "#94a3b8";
       }
 
-      function positionStackedBarTooltip(chart, tooltipEl, tooltip) {
-        const canvas = chart.canvas;
-        const left = canvas.offsetLeft + tooltip.caretX;
-        const top = canvas.offsetTop + tooltip.caretY;
+      /** Gemeinsames Floating-Tooltip für Charts und Honarable-Mentions-Tags. */
+      function getOrCreateFloatingTooltip(anchor) {
+        let tooltipEl = anchor.querySelector(".stacked-bar-tooltip");
+        if (!tooltipEl) {
+          if (getComputedStyle(anchor).position === "static") {
+            anchor.style.position = "relative";
+          }
+          tooltipEl = document.createElement("div");
+          tooltipEl.className = "stacked-bar-tooltip";
+          anchor.appendChild(tooltipEl);
+        }
+        return tooltipEl;
+      }
+
+      function hideFloatingTooltip(anchor) {
+        const tooltipEl = anchor && anchor.querySelector(".stacked-bar-tooltip");
+        if (tooltipEl) tooltipEl.style.opacity = "0";
+      }
+
+      /** left/top relativ zum Anchor; klappt am Panelrand nach links/rechts um. */
+      function positionFloatingTooltip(anchor, tooltipEl, left, top) {
+        const panel = document.getElementById("stats-panel") || anchor;
+        const pad = 6;
         tooltipEl.style.left = left + "px";
         tooltipEl.style.top = top + "px";
         tooltipEl.style.transform = "translate(-50%, calc(-100% - 8px))";
+
+        const tipRect = tooltipEl.getBoundingClientRect();
+        const panelRect = panel.getBoundingClientRect();
+        if (tipRect.right > panelRect.right - pad) {
+          tooltipEl.style.transform = "translate(-100%, calc(-100% - 8px))";
+        } else if (tipRect.left < panelRect.left + pad) {
+          tooltipEl.style.transform = "translate(0, calc(-100% - 8px))";
+        }
+      }
+
+      function showFloatingTooltip(anchor, content, left, top, options) {
+        if (!anchor) return;
+        const tooltipEl = getOrCreateFloatingTooltip(anchor);
+        if (options && options.asText) tooltipEl.textContent = content;
+        else tooltipEl.innerHTML = content;
+        tooltipEl.style.opacity = "1";
+        positionFloatingTooltip(anchor, tooltipEl, left, top);
       }
 
       function createStackedBarTooltipConfig({
@@ -987,24 +1113,14 @@
             const anchor = chart.canvas.parentNode;
             if (!anchor) return;
 
-            let tooltipEl = anchor.querySelector(".stacked-bar-tooltip");
-            if (!tooltipEl) {
-              if (getComputedStyle(anchor).position === "static") {
-                anchor.style.position = "relative";
-              }
-              tooltipEl = document.createElement("div");
-              tooltipEl.className = "stacked-bar-tooltip";
-              anchor.appendChild(tooltipEl);
-            }
-
             if (tooltip.opacity === 0) {
-              tooltipEl.style.opacity = "0";
+              hideFloatingTooltip(anchor);
               return;
             }
 
             const visible = getVisibleItems(tooltip.dataPoints || []);
             if (!visible.length) {
-              tooltipEl.style.opacity = "0";
+              hideFloatingTooltip(anchor);
               return;
             }
 
@@ -1044,9 +1160,13 @@
             }
             html += "</tbody></table>";
 
-            tooltipEl.innerHTML = html;
-            tooltipEl.style.opacity = "1";
-            positionStackedBarTooltip(chart, tooltipEl, tooltip);
+            const canvas = chart.canvas;
+            showFloatingTooltip(
+              anchor,
+              html,
+              canvas.offsetLeft + tooltip.caretX,
+              canvas.offsetTop + tooltip.caretY
+            );
           },
         };
       }
@@ -1427,12 +1547,14 @@
           }))
           .filter((entry) => entry.hours > 0)
           .sort((a, b) => b.hours - a.hours);
+        const { highlighted, mentions } = splitGamesForDisplay(appsWithTime);
+        renderHonorableMentions(mentions);
 
-        const gamesLabels = appsWithTime.map((entry) =>
+        const gamesLabels = highlighted.map((entry) =>
           entry.app.replace(/\.exe$/i, "")
         );
-        const gamesData = appsWithTime.map((entry) => entry.hours);
-        const gamesColors = appsWithTime.map((entry, index) => {
+        const gamesData = highlighted.map((entry) => entry.hours);
+        const gamesColors = highlighted.map((entry, index) => {
           const c =
             colorByApp[entry.app] ||
             COLOR_PALETTE[index % COLOR_PALETTE.length];
@@ -1442,8 +1564,11 @@
 
         const gamesChartBlock = document.getElementById("games-chart-block");
         const barHeightPx = 26; // etwas niedrigere Höhe pro Spielzeile, wächst aber mit der Anzahl Spiele
-        const gamesChartHeight = Math.max(170, appsWithTime.length * barHeightPx);
-        if (gamesChartBlock) gamesChartBlock.style.height = gamesChartHeight + "px";
+        const gamesChartHeight = Math.max(170, highlighted.length * barHeightPx);
+        if (gamesChartBlock) {
+          gamesChartBlock.style.display = highlighted.length ? "block" : "none";
+          gamesChartBlock.style.height = gamesChartHeight + "px";
+        }
 
         gamesChartInstance = new Chart(gamesCtx, {
           type: "bar",

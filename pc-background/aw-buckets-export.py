@@ -42,7 +42,7 @@ MIN_DURATION_SECONDS = 600
 KIDS_PATTERN = re.compile(
     r"minecraft|takes|crashers|planet|fifa|cat|lego|goat|sackboy|fiction|sonic|"
     r"overcooked|brawlstars|brothers|gigabash|nba|rocket|fortnite|hypercharge|"
-    r"nucleus|wreckfest",
+    r"wreckfest|orcs|retimed",
     re.IGNORECASE,
 )
 
