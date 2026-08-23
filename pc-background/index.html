@@ -91,7 +91,7 @@
         monthsToShow: 12,
 
         // Spiele-Diagramm: mindestens highlightMinHours in den letzten X Monaten.
-        // Darunter → „Honarable Mentions“ (Tags mit Spielzeit nur als Tooltip).
+        // Darunter → „Honarable Mentions“ (Tags; Tooltip = Gesamtspielzeit).
         highlightMinHours: 3,
 
         // Ziel-Höhe des Dashboards in Prozent der Fensterhöhe (z. B. 40 = ca. 40 % Bildschirmhöhe).
@@ -268,6 +268,7 @@
       }
 
       .honorable-mentions-list .game-tag {
+        position: relative;
         display: inline-block;
         max-width: 100%;
         padding: 0.28rem 0.55rem;
@@ -278,6 +279,7 @@
         line-height: 1.3;
         white-space: nowrap;
         cursor: default;
+        overflow: visible;
       }
 
       .chart-block {
@@ -286,75 +288,46 @@
         position: relative;
       }
 
-      .stacked-bar-tooltip {
+      /* Nur Honarable-Mentions-Tags (Charts nutzen Chart.js-Tooltips). */
+      .tag-tooltip {
+        --tooltip-bg: rgba(15, 23, 42, 0.94);
+        --tooltip-border: rgba(148, 163, 184, 0.35);
+        --tooltip-caret-size: 8px;
         position: absolute;
+        left: 50%;
+        top: 0;
+        transform: translate(-50%, calc(-100% - 5px));
         pointer-events: none;
         opacity: 0;
-        background: rgba(15, 23, 42, 0.94);
-        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: var(--tooltip-bg);
+        border: 1px solid var(--tooltip-border);
         border-radius: 8px;
         padding: 0.45rem 0.6rem;
         color: #f8fafc;
         font-size: 0.78rem;
         line-height: 1.35;
+        white-space: nowrap;
         z-index: 30;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
         transition: opacity 0.12s ease;
       }
 
-      .stacked-bar-tooltip-title {
-        font-weight: 600;
-        margin-bottom: 0.3rem;
-        color: #e5e7eb;
+      .tag-tooltip.is-visible {
+        opacity: 1;
       }
 
-      .stacked-bar-tooltip-table {
-        border-collapse: separate;
-        border-spacing: 0.55rem 0;
-        border: none;
-      }
-
-      .stacked-bar-tooltip-table td {
-        border: none;
-        padding: 0.06rem 0;
-        vertical-align: middle;
-      }
-
-      .stacked-bar-tooltip-color {
-        width: 10px;
-      }
-
-      .stacked-bar-tooltip-swatch {
-        display: inline-block;
-        width: 10px;
-        height: 10px;
-        border-radius: 2px;
-      }
-
-      .stacked-bar-tooltip-name {
-        text-align: left;
-        white-space: nowrap;
-      }
-
-      .stacked-bar-tooltip-value {
-        text-align: right;
-        white-space: nowrap;
-        color: #cbd5e1;
-      }
-
-      .stacked-bar-tooltip-separator td {
-        padding: 0.28rem 0 0 0;
-        border-bottom: 1px solid rgba(148, 163, 184, 0.35);
-      }
-
-      .stacked-bar-tooltip-total td {
-        padding-top: 0.28rem;
-      }
-
-      .stacked-bar-tooltip-total .stacked-bar-tooltip-name,
-      .stacked-bar-tooltip-total .stacked-bar-tooltip-value {
-        font-weight: 600;
-        color: #f8fafc;
+      .tag-tooltip::after {
+        content: "";
+        position: absolute;
+        top: calc(100% - (var(--tooltip-caret-size) / 2) - 1px);
+        left: 50%;
+        width: var(--tooltip-caret-size);
+        height: var(--tooltip-caret-size);
+        background: var(--tooltip-bg);
+        border-right: 1px solid var(--tooltip-border);
+        border-bottom: 1px solid var(--tooltip-border);
+        transform: translateX(-50%) rotate(45deg);
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
       }
 
       canvas {
@@ -586,7 +559,6 @@
         if (!section || !listEl) return;
 
         listEl.innerHTML = "";
-        hideFloatingTooltip(section);
         if (!mentions.length) {
           section.style.display = "none";
           return;
@@ -596,19 +568,10 @@
           const tag = document.createElement("span");
           tag.className = "game-tag";
           tag.textContent = String(entry.app || "").replace(/\.exe$/i, "");
-          const hoursText = formatHours(entry.hours) + " h";
-          tag.addEventListener("mouseenter", () => {
-            const sectionRect = section.getBoundingClientRect();
-            const tagRect = tag.getBoundingClientRect();
-            showFloatingTooltip(
-              section,
-              hoursText,
-              tagRect.left - sectionRect.left + tagRect.width / 2,
-              tagRect.top - sectionRect.top,
-              { asText: true }
-            );
-          });
-          tag.addEventListener("mouseleave", () => hideFloatingTooltip(section));
+          // Gesamtspielzeit (nicht nur letzte X Monate).
+          const hoursText = formatHours(entry.totalHours) + " h";
+          tag.addEventListener("mouseenter", () => showTagTooltip(tag, hoursText));
+          tag.addEventListener("mouseleave", () => hideTagTooltip(tag));
           listEl.appendChild(tag);
         });
         section.style.display = "block";
@@ -845,6 +808,8 @@
 
         let totalHoursThisMonth = 0;
         let matchedEvents = 0;
+        // Gesamtspielzeit über den gesamten Datensatz (für Honarable-Mentions-Tooltips).
+        const totalHoursByApp = Object.create(null);
 
         // Pro Tag sammeln wir alle relevanten Events (nach Filterung), um Überschneidungen
         // aufzulösen: zu jedem Zeitpunkt zählt nur das Spiel, das zuerst gestartet wurde.
@@ -944,6 +909,8 @@
 
             const { year, monthIndex, dayOfMonth, gameKey } = winner;
 
+            totalHoursByApp[gameKey] = (totalHoursByApp[gameKey] || 0) + hours;
+
             const inCurrentYear =
               year === currentYear && monthIndex >= 0 && monthIndex < 12;
             const inPrevYear =
@@ -970,6 +937,7 @@
         }
 
         const appsSet = new Set();
+        Object.keys(totalHoursByApp).forEach((game) => appsSet.add(game));
         Object.values(monthlyByYearMonth).forEach((bucket) => {
           Object.keys(bucket).forEach((game) => appsSet.add(game));
         });
@@ -982,6 +950,7 @@
           apps,
           monthlyByYearMonth,
           dailyByApp,
+          totalHoursByApp,
           totalHoursThisMonth,
           currentYear,
           currentMonthIndex,
@@ -1001,13 +970,25 @@
       const stackedBarAscendingSort = (a, b) =>
         (a.parsed.y || 0) - (b.parsed.y || 0);
 
-      function escapeHtml(text) {
-        return String(text)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
-      }
+      /** Chart.js-Tooltip-Optik an die Tag-Bubbles angelehnt. */
+      const chartTooltipStyle = {
+        backgroundColor: "rgba(15, 23, 42, 0.94)",
+        borderColor: "rgba(148, 163, 184, 0.35)",
+        borderWidth: 1,
+        cornerRadius: 8,
+        caretSize: 6,
+        caretPadding: 4,
+        padding: { top: 8, bottom: 8, left: 10, right: 10 },
+        titleColor: "#e5e7eb",
+        bodyColor: "#f8fafc",
+        footerColor: "#f8fafc",
+        titleFont: { size: 12, weight: "600" },
+        bodyFont: { size: 12 },
+        footerFont: { size: 12, weight: "600" },
+        boxWidth: 10,
+        boxHeight: 10,
+        boxPadding: 4,
+      };
 
       function formatTooltipGameName(name) {
         return String(name || "").replace(/\.exe$/i, "");
@@ -1027,148 +1008,56 @@
         };
       }
 
-      function getTooltipItemColor(item) {
-        const backgroundColor = item.dataset.backgroundColor;
-        if (Array.isArray(backgroundColor)) {
-          return backgroundColor[item.dataIndex] || "transparent";
-        }
-        return backgroundColor || item.element?.options?.backgroundColor || "#94a3b8";
-      }
-
-      /** Gemeinsames Floating-Tooltip für Charts und Honarable-Mentions-Tags. */
-      function getOrCreateFloatingTooltip(anchor) {
-        let tooltipEl = anchor.querySelector(".stacked-bar-tooltip");
-        if (!tooltipEl) {
-          if (getComputedStyle(anchor).position === "static") {
-            anchor.style.position = "relative";
-          }
-          tooltipEl = document.createElement("div");
-          tooltipEl.className = "stacked-bar-tooltip";
-          anchor.appendChild(tooltipEl);
-        }
-        return tooltipEl;
-      }
-
-      function hideFloatingTooltip(anchor) {
-        const tooltipEl = anchor && anchor.querySelector(".stacked-bar-tooltip");
-        if (tooltipEl) tooltipEl.style.opacity = "0";
-      }
-
-      /** left/top relativ zum Anchor; klappt am Panelrand nach links/rechts um. */
-      function positionFloatingTooltip(anchor, tooltipEl, left, top) {
-        const panel = document.getElementById("stats-panel") || anchor;
-        const pad = 6;
-        tooltipEl.style.left = left + "px";
-        tooltipEl.style.top = top + "px";
-        tooltipEl.style.transform = "translate(-50%, calc(-100% - 8px))";
-
-        const tipRect = tooltipEl.getBoundingClientRect();
-        const panelRect = panel.getBoundingClientRect();
-        if (tipRect.right > panelRect.right - pad) {
-          tooltipEl.style.transform = "translate(-100%, calc(-100% - 8px))";
-        } else if (tipRect.left < panelRect.left + pad) {
-          tooltipEl.style.transform = "translate(0, calc(-100% - 8px))";
-        }
-      }
-
-      function showFloatingTooltip(anchor, content, left, top, options) {
-        if (!anchor) return;
-        const tooltipEl = getOrCreateFloatingTooltip(anchor);
-        if (options && options.asText) tooltipEl.textContent = content;
-        else tooltipEl.innerHTML = content;
-        tooltipEl.style.opacity = "1";
-        positionFloatingTooltip(anchor, tooltipEl, left, top);
-      }
-
       function createStackedBarTooltipConfig({
         formatValue,
         totalPrefix = "Gesamt",
         showTotalOnlyWhenMultiple = false,
         getTitle,
       }) {
-        function getVisibleItems(items) {
-          return items
-            .filter((item) => (item.parsed.y || 0) > 0)
-            .sort(stackedBarAscendingSort);
-        }
-
-        function getEntriesFromItems(items) {
-          return items.map((item) => {
-            const entry = getRankedTooltipEntry(item);
-            return {
-              name: entry.name,
-              value: entry.value,
-              text: formatValue(entry.value),
-              color: getTooltipItemColor(item),
-            };
-          });
-        }
-
         return {
-          mode: "index",
-          intersect: false,
-          enabled: false,
-          external(context) {
-            const { chart, tooltip } = context;
-            const anchor = chart.canvas.parentNode;
-            if (!anchor) return;
-
-            if (tooltip.opacity === 0) {
-              hideFloatingTooltip(anchor);
-              return;
-            }
-
-            const visible = getVisibleItems(tooltip.dataPoints || []);
-            if (!visible.length) {
-              hideFloatingTooltip(anchor);
-              return;
-            }
-
-            const entries = getEntriesFromItems(visible);
-            const showTotal =
-              !showTotalOnlyWhenMultiple || visible.length > 1;
-            const totalValue = entries.reduce(
-              (sum, entry) => sum + entry.value,
-              0
-            );
-            const title = getTitle
-              ? getTitle(visible)
-              : visible[0]?.label || "";
-
-            let html = "";
-            if (title) {
-              html += `<div class="stacked-bar-tooltip-title">${escapeHtml(
-                title
-              )}</div>`;
-            }
-
-            html += '<table class="stacked-bar-tooltip-table"><tbody>';
-            entries.forEach((entry) => {
-              html += `<tr>
-                <td class="stacked-bar-tooltip-color"><span class="stacked-bar-tooltip-swatch" style="background:${escapeHtml(entry.color)}"></span></td>
-                <td class="stacked-bar-tooltip-name">${escapeHtml(entry.name)}</td>
-                <td class="stacked-bar-tooltip-value">${escapeHtml(entry.text)}</td>
-              </tr>`;
-            });
-            if (showTotal) {
-              html += `<tr class="stacked-bar-tooltip-separator"><td colspan="3"></td></tr>`;
-              html += `<tr class="stacked-bar-tooltip-total">
-                <td class="stacked-bar-tooltip-color"></td>
-                <td class="stacked-bar-tooltip-name">${escapeHtml(totalPrefix)}</td>
-                <td class="stacked-bar-tooltip-value">${escapeHtml(formatValue(totalValue))}</td>
-              </tr>`;
-            }
-            html += "</tbody></table>";
-
-            const canvas = chart.canvas;
-            showFloatingTooltip(
-              anchor,
-              html,
-              canvas.offsetLeft + tooltip.caretX,
-              canvas.offsetTop + tooltip.caretY
-            );
+          ...chartTooltipStyle,
+          ...stackedBarInteraction,
+          filter: (item) => (item.parsed.y || 0) > 0,
+          itemSort: stackedBarAscendingSort,
+          callbacks: {
+            title(items) {
+              if (!items.length) return "";
+              return getTitle ? getTitle(items) : items[0].label || "";
+            },
+            label(item) {
+              const entry = getRankedTooltipEntry(item);
+              return ` ${entry.name}: ${formatValue(entry.value)}`;
+            },
+            footer(items) {
+              const visible = items.filter((item) => (item.parsed.y || 0) > 0);
+              if (!visible.length) return "";
+              if (showTotalOnlyWhenMultiple && visible.length <= 1) return "";
+              const total = visible.reduce(
+                (sum, item) => sum + getRankedTooltipEntry(item).value,
+                0
+              );
+              return `${totalPrefix}: ${formatValue(total)}`;
+            },
           },
         };
+      }
+
+      /** Kleines CSS-Tooltip nur für Honarable-Mentions-Tags. */
+      function showTagTooltip(tag, text) {
+        let tip = tag.querySelector(".tag-tooltip");
+        if (!tip) {
+          tip = document.createElement("span");
+          tip.className = "tag-tooltip";
+          tip.setAttribute("aria-hidden", "true");
+          tag.appendChild(tip);
+        }
+        tip.textContent = text;
+        tip.classList.add("is-visible");
+      }
+
+      function hideTagTooltip(tag) {
+        const tip = tag && tag.querySelector(".tag-tooltip");
+        if (tip) tip.classList.remove("is-visible");
       }
 
       /** Gestapelte Monats-Balken: pro Monat nach Spielzeit sortiert (größte unten). */
@@ -1534,6 +1423,7 @@
 
         // Daten für horizontales Balkendiagramm: Stunden pro Spiel (letzte X Monate)
         const totalByAppLastX = {};
+        const totalHoursByApp = agg.totalHoursByApp || {};
         agg.apps.forEach((app) => {
           totalByAppLastX[app] = monthlyByAppLastX.reduce(
             (sum, bucket) => sum + (bucket[app] || 0),
@@ -1544,10 +1434,13 @@
           .map((app) => ({
             app,
             hours: totalByAppLastX[app] || 0,
+            totalHours: totalHoursByApp[app] || 0,
           }))
-          .filter((entry) => entry.hours > 0)
+          .filter((entry) => entry.hours > 0 || entry.totalHours > 0)
           .sort((a, b) => b.hours - a.hours);
         const { highlighted, mentions } = splitGamesForDisplay(appsWithTime);
+        // Mentions: Sortierung und Tooltip nach Gesamtspielzeit (gesamter Datensatz).
+        mentions.sort((a, b) => b.totalHours - a.totalHours);
         renderHonorableMentions(mentions);
 
         const gamesLabels = highlighted.map((entry) =>
@@ -1594,11 +1487,12 @@
                 display: false,
               },
               tooltip: {
+                ...chartTooltipStyle,
+                displayColors: false,
                 callbacks: {
-                  label: (context) => {
-                    const raw = Number(context.parsed.x || 0);
-                    return `${context.label}: ${formatHours(raw)} h`;
-                  },
+                  title: () => "",
+                  label: (context) =>
+                    formatHours(Number(context.parsed.x || 0)) + " h",
                 },
               },
             },
@@ -1700,6 +1594,7 @@
             apps: [],
             monthlyByYearMonth: {},
             dailyByApp: Array.from({ length: daysInCurrentMonth }, () => ({})),
+            totalHoursByApp: {},
             totalHoursThisMonth: 0,
             currentYear,
             currentMonthIndex,
