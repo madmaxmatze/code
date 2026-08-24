@@ -1156,25 +1156,22 @@
       }
 
       function getCategoryAnchorX(chart, visiblePoints, barElements, fallbackX) {
-        const dataIndex = visiblePoints[0]?.dataIndex;
-        const xScale = chart.scales?.x;
-        if (dataIndex != null && xScale) {
-          if (typeof xScale.getPixelForTick === "function") {
-            return xScale.getPixelForTick(dataIndex);
-          }
-          const label = chart.data?.labels?.[dataIndex];
-          if (label != null && typeof xScale.getPixelForValue === "function") {
-            return xScale.getPixelForValue(label);
-          }
-          if (typeof xScale.getPixelForValue === "function") {
-            return xScale.getPixelForValue(dataIndex);
-          }
-        }
         if (barElements.length) {
           return (
             barElements.reduce((sum, bar) => sum + bar.x, 0) / barElements.length
           );
         }
+
+        const dataIndex = visiblePoints[0]?.dataIndex;
+        const xScale = chart.scales?.x;
+        if (dataIndex != null && xScale && typeof xScale.getPixelForValue === "function") {
+          const label = chart.data?.labels?.[dataIndex];
+          if (label != null) {
+            return xScale.getPixelForValue(label);
+          }
+          return xScale.getPixelForValue(dataIndex);
+        }
+
         return fallbackX;
       }
 
@@ -1422,7 +1419,17 @@
 
       function isActiveCategoryTick(ctx) {
         const active = ctx.chart.getActiveElements();
-        return active.length > 0 && active[0].index === ctx.index;
+        if (!active.length) return false;
+        const activeIndex = active[0].index;
+        const tickValue = ctx.tick?.value;
+        if (tickValue != null && Number(tickValue) === activeIndex) {
+          return true;
+        }
+        const labels = ctx.chart.data?.labels;
+        if (labels && labels[activeIndex] != null) {
+          return String(labels[activeIndex]) === String(ctx.tick?.label ?? "");
+        }
+        return ctx.index === activeIndex;
       }
 
       function categoryTickColor(ctx) {
