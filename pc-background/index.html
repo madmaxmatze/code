@@ -71,11 +71,18 @@
           "https://w.wallhaven.cc/full/7j/wallhaven-7j38je.png",  // split fiction
           "https://images2.alphacoders.com/139/thumb-1920-1393870.jpg",  // split fiction
           "https://w.wallhaven.cc/full/r2/wallhaven-r2rxjj.jpg",  // anno 1800
+          "https://w.wallhaven.cc/full/zm/wallhaven-zmo6do.jpg",  // anno 1800
           "https://w.wallhaven.cc/full/zp/wallhaven-zpmljg.png",  // satisfactory
           "https://w.wallhaven.cc/full/0j/wallhaven-0jye8w.jpg",  // sackboy 
           "https://w.wallhaven.cc/full/r7/wallhaven-r7m3lq.jpg",  // rdr2
           "https://a.storyblok.com/f/158607/3840x2160/5d855b7111/actionscreenshot_carjump_newversion.jpg",  // goat sim 3
           "https://images6.alphacoders.com/139/thumb-1920-1399082.jpg",  // g.o.a.t.
+          "https://w.wallhaven.cc/full/ym/wallhaven-ymkq17.png",  // fortnite
+          "https://w.wallhaven.cc/full/5w/wallhaven-5wlgx3.jpg",  // fortnite
+          "https://w.wallhaven.cc/full/4l/wallhaven-4ljzgr.jpg",  // assassins creed
+          "https://w.wallhaven.cc/full/l8/wallhaven-l88ppq.jpg",  // assassins creed wiking
+          "https://w.wallhaven.cc/full/ml/wallhaven-mlz378.jpg",  // expedition 33
+          "https://w.wallhaven.cc/full/01/wallhaven-01xdl3.jpg",  // one piece
         ],
 
         // Monatskontingente (Stunden), aufsteigend nach Jahr/Monat.
@@ -280,12 +287,114 @@
         white-space: nowrap;
         cursor: default;
         overflow: visible;
+        outline: 1px solid transparent;
+        outline-offset: -1px;
+        transition: color 0.12s ease, border-color 0.12s ease, outline-color 0.12s ease;
+      }
+
+      .honorable-mentions-list .game-tag:hover {
+        color: #f8fafc;
+        border-color: #f8fafc;
+        outline-color: #f8fafc;
       }
 
       .chart-block {
         border-radius: 12px;
         padding: 0.55rem 0.7rem 0.6rem 0.7rem;
         position: relative;
+        overflow: visible;
+      }
+
+      /* Externe Chart.js-Tooltips: am Balken verankert, scrollbar bei vielen Spielen. */
+      .chart-tooltip-external {
+        position: fixed;
+        z-index: 10000;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.12s ease;
+        background: rgba(15, 23, 42, 0.94);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 8px;
+        padding: 8px 10px;
+        color: #f8fafc;
+        font-size: 12px;
+        line-height: 1.35;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+        max-width: min(90vw, 320px);
+        max-height: min(60vh, 280px);
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .chart-tooltip-external.is-visible {
+        opacity: 1;
+      }
+
+      .chart-tooltip-external.is-scrollable {
+        pointer-events: auto;
+      }
+
+      .chart-tooltip-external.caret-top::before,
+      .chart-tooltip-external.caret-bottom::before {
+        content: "";
+        position: absolute;
+        left: var(--caret-x, 50%);
+        width: 10px;
+        height: 10px;
+        background: rgba(15, 23, 42, 0.94);
+        transform: translateX(-50%) rotate(45deg);
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .chart-tooltip-external.caret-top::before {
+        top: -5px;
+        border-left: 1px solid rgba(148, 163, 184, 0.35);
+        border-top: 1px solid rgba(148, 163, 184, 0.35);
+      }
+
+      .chart-tooltip-external.caret-bottom::before {
+        bottom: -5px;
+        border-right: 1px solid rgba(148, 163, 184, 0.35);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+      }
+
+      .chart-tooltip-external .chart-tooltip-title {
+        font-weight: 600;
+        color: #e5e7eb;
+        margin-bottom: 6px;
+        flex-shrink: 0;
+      }
+
+      .chart-tooltip-external .chart-tooltip-body {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        min-height: 0;
+        flex: 1;
+      }
+
+      .chart-tooltip-external .chart-tooltip-footer {
+        font-weight: 600;
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid rgba(148, 163, 184, 0.25);
+        flex-shrink: 0;
+      }
+
+      .chart-tooltip-external .chart-tooltip-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 2px 0;
+      }
+
+      .chart-tooltip-external .chart-tooltip-swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        border: 1px solid;
+        flex-shrink: 0;
       }
 
       /* Nur Honarable-Mentions-Tags (Charts nutzen Chart.js-Tooltips). */
@@ -333,6 +442,11 @@
       canvas {
         width: 100% !important;
         height: 170px !important;
+      }
+
+      .chart-block > div,
+      .chart-block > div > div {
+        overflow: visible;
       }
 
       /* Unterer Chart: Höhe wird per JS an Anzahl Spiele angepasst */
@@ -1008,6 +1122,193 @@
         };
       }
 
+      function getExternalChartTooltipEl() {
+        document
+          .querySelectorAll(".chart-tooltip-external:not(#chart-tooltip-external)")
+          .forEach((el) => el.remove());
+        let el = document.getElementById("chart-tooltip-external");
+        if (!el) {
+          el = document.createElement("div");
+          el.id = "chart-tooltip-external";
+          el.className = "chart-tooltip-external";
+          el.setAttribute("role", "tooltip");
+          el.setAttribute("aria-hidden", "true");
+          document.body.appendChild(el);
+        }
+        return el;
+      }
+
+      function hideExternalChartTooltip() {
+        const el = document.getElementById("chart-tooltip-external");
+        if (!el) return;
+        el.classList.remove("is-visible", "is-scrollable", "caret-top", "caret-bottom");
+        el.replaceChildren();
+      }
+
+      function canvasPointToScreen(chart, x, y) {
+        const rect = chart.canvas.getBoundingClientRect();
+        const scaleX = rect.width / chart.width;
+        const scaleY = rect.height / chart.height;
+        return {
+          x: rect.left + x * scaleX,
+          y: rect.top + y * scaleY,
+        };
+      }
+
+      function getCategoryAnchorX(chart, visiblePoints, barElements, fallbackX) {
+        const dataIndex = visiblePoints[0]?.dataIndex;
+        const xScale = chart.scales?.x;
+        if (dataIndex != null && xScale) {
+          if (typeof xScale.getPixelForTick === "function") {
+            return xScale.getPixelForTick(dataIndex);
+          }
+          const label = chart.data?.labels?.[dataIndex];
+          if (label != null && typeof xScale.getPixelForValue === "function") {
+            return xScale.getPixelForValue(label);
+          }
+          if (typeof xScale.getPixelForValue === "function") {
+            return xScale.getPixelForValue(dataIndex);
+          }
+        }
+        if (barElements.length) {
+          return (
+            barElements.reduce((sum, bar) => sum + bar.x, 0) / barElements.length
+          );
+        }
+        return fallbackX;
+      }
+
+      function stackedTooltipHasVisibleItems(tooltip) {
+        return (tooltip.dataPoints || []).some((item) => (item.parsed.y || 0) > 0);
+      }
+
+      /** HTML-Tooltip am Chart verankert, damit lange Spiel-Listen nicht abgeschnitten werden. */
+      function renderExternalStackedBarTooltip(context) {
+        const { chart, tooltip } = context;
+
+        if (
+          !tooltip ||
+          tooltip.opacity === 0 ||
+          !stackedTooltipHasVisibleItems(tooltip)
+        ) {
+          hideExternalChartTooltip();
+          return;
+        }
+
+        const el = getExternalChartTooltipEl();
+        el.replaceChildren();
+
+        const titleText = (tooltip.title || []).filter(Boolean).join(" ");
+        if (titleText) {
+          const titleEl = document.createElement("div");
+          titleEl.className = "chart-tooltip-title";
+          titleEl.textContent = titleText;
+          el.appendChild(titleEl);
+        }
+
+        const bodyEl = document.createElement("div");
+        bodyEl.className = "chart-tooltip-body";
+        (tooltip.body || []).forEach((body, index) => {
+          const colors = tooltip.labelColors?.[index];
+          (body.lines || []).forEach((line) => {
+            const text = String(line || "").trim();
+            if (!text) return;
+            const row = document.createElement("div");
+            row.className = "chart-tooltip-row";
+            if (colors) {
+              const swatch = document.createElement("span");
+              swatch.className = "chart-tooltip-swatch";
+              swatch.style.backgroundColor = colors.backgroundColor;
+              swatch.style.borderColor = colors.borderColor;
+              row.appendChild(swatch);
+            }
+            const label = document.createElement("span");
+            label.textContent = text;
+            row.appendChild(label);
+            bodyEl.appendChild(row);
+          });
+        });
+
+        if (!bodyEl.childElementCount) {
+          hideExternalChartTooltip();
+          return;
+        }
+
+        el.appendChild(bodyEl);
+
+        const footerText = (tooltip.footer || []).filter(Boolean).join(" ");
+        if (footerText) {
+          const footerEl = document.createElement("div");
+          footerEl.className = "chart-tooltip-footer";
+          footerEl.textContent = footerText;
+          el.appendChild(footerEl);
+        }
+
+        el.classList.remove("caret-top", "caret-bottom");
+
+        const visiblePoints = (tooltip.dataPoints || []).filter(
+          (item) => (item.parsed.y || 0) > 0
+        );
+        const barElements = visiblePoints
+          .map((item) => item.element)
+          .filter(Boolean);
+        const anchorCanvasX = getCategoryAnchorX(
+          chart,
+          visiblePoints,
+          barElements,
+          tooltip.caretX
+        );
+        let stackTop = tooltip.caretY;
+        let stackBottom = tooltip.caretY;
+        if (barElements.length) {
+          stackTop = Math.min(...barElements.map((bar) => bar.y));
+          stackBottom = Math.max(...barElements.map((bar) => bar.base));
+        }
+
+        el.style.visibility = "hidden";
+        el.style.left = "0";
+        el.style.top = "0";
+        el.classList.add("is-visible");
+
+        const gap = 10;
+        const tooltipWidth = el.offsetWidth;
+        const tooltipHeight = el.offsetHeight;
+        const anchorTop = canvasPointToScreen(chart, anchorCanvasX, stackTop);
+        const anchorBottom = canvasPointToScreen(chart, anchorCanvasX, stackBottom);
+        let top = anchorTop.y - tooltipHeight - gap;
+        let caretClass = "caret-bottom";
+
+        if (top + tooltipHeight > anchorTop.y - 4) {
+          top = anchorTop.y - tooltipHeight - gap;
+        }
+        top = Math.max(8, top);
+
+        if (top + tooltipHeight > anchorTop.y - 4) {
+          top = anchorBottom.y + gap;
+          caretClass = "caret-top";
+        }
+
+        let left = anchorTop.x - tooltipWidth / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - tooltipWidth - 8));
+
+        el.style.left = `${left}px`;
+        el.style.top = `${top}px`;
+        el.style.visibility = "visible";
+        el.classList.add(caretClass);
+
+        const caretOffset = anchorTop.x - left;
+        const caretXPos = Math.max(
+          12,
+          Math.min(caretOffset, Math.max(12, tooltipWidth - 12))
+        );
+        el.style.setProperty("--caret-x", `${caretXPos}px`);
+
+        el.classList.toggle(
+          "is-scrollable",
+          bodyEl.scrollHeight > bodyEl.clientHeight + 1
+        );
+      }
+
       function createStackedBarTooltipConfig({
         formatValue,
         totalPrefix = "Gesamt",
@@ -1015,6 +1316,9 @@
         getTitle,
       }) {
         return {
+          enabled: false,
+          external: renderExternalStackedBarTooltip,
+          position: "average",
           ...chartTooltipStyle,
           ...stackedBarInteraction,
           filter: (item) => (item.parsed.y || 0) > 0,
@@ -1026,7 +1330,7 @@
             },
             label(item) {
               const entry = getRankedTooltipEntry(item);
-              return ` ${entry.name}: ${formatValue(entry.value)}`;
+              return `${entry.name}: ${formatValue(entry.value)}`;
             },
             footer(items) {
               const visible = items.filter((item) => (item.parsed.y || 0) > 0);
@@ -1074,20 +1378,35 @@
         );
         if (slotCount === 0) return [];
 
+        const segmentColor = (ranked, slotIndex, { hover = false } = {}) => {
+          const app = ranked[slotIndex]?.app;
+          const color = app ? colorByApp[app] : null;
+          if (!color) return "transparent";
+          return hover ? color + "ff" : color + "cc";
+        };
+
+        const segmentMeta = (ctx) => ctx.dataset.rankMeta?.[ctx.dataIndex] || null;
+
         return Array.from({ length: slotCount }, (_, slotIndex) => ({
           label: `rank-${slotIndex}`,
           data: rankMetaByBucket.map((ranked) => ranked[slotIndex]?.value || 0),
-          backgroundColor: rankMetaByBucket.map((ranked) => {
-            const app = ranked[slotIndex]?.app;
-            const color = app ? colorByApp[app] : null;
-            return color ? color + "cc" : "transparent";
-          }),
+          backgroundColor: rankMetaByBucket.map((ranked) =>
+            segmentColor(ranked, slotIndex)
+          ),
           borderColor: rankMetaByBucket.map((ranked) => {
             const app = ranked[slotIndex]?.app;
             const color = app ? colorByApp[app] : null;
             return color || "transparent";
           }),
+          hoverBackgroundColor: (ctx) => {
+            const meta = segmentMeta(ctx);
+            if (!meta?.app) return "transparent";
+            const color = colorByApp[meta.app];
+            return color ? color + "ff" : "transparent";
+          },
+          hoverBorderColor: (ctx) => (segmentMeta(ctx)?.app ? "#f8fafc" : "transparent"),
           borderWidth: 1,
+          hoverBorderWidth: (ctx) => (segmentMeta(ctx)?.app ? 2 : 0),
           stack: "stack-0",
           rankMeta: rankMetaByBucket.map((ranked) => ranked[slotIndex] || null),
         }));
@@ -1097,6 +1416,20 @@
       let dayChartInstance = null;
       let monthChartInstance = null;
       let gamesChartInstance = null;
+
+      const CATEGORY_TICK_COLOR = "#cbd5f5";
+      const CATEGORY_TICK_ACTIVE_COLOR = "#f8fafc";
+
+      function isActiveCategoryTick(ctx) {
+        const active = ctx.chart.getActiveElements();
+        return active.length > 0 && active[0].index === ctx.index;
+      }
+
+      function categoryTickColor(ctx) {
+        return isActiveCategoryTick(ctx)
+          ? CATEGORY_TICK_ACTIVE_COLOR
+          : CATEGORY_TICK_COLOR;
+      }
 
       function isWeekend(year, monthIndex, dayOfMonth) {
         const d = new Date(year, monthIndex, dayOfMonth);
@@ -1226,6 +1559,7 @@
 
       /** Erstellt/aktualisiert alle drei Charts (Pro Monat, Pro Jahr, Pro Jahr & Spiel). */
       function renderCharts(agg) {
+        hideExternalChartTooltip();
         const X = getMonthsToShow();
         const currentYear = agg.currentYear;
         const currentMonthIndex = agg.currentMonthIndex;
@@ -1289,8 +1623,10 @@
             x: {
               stacked: true,
               ticks: {
-                color: "#cbd5f5",
-                font: { size: 10 },
+                color: categoryTickColor,
+                font: { size: 10, weight: "normal" },
+                maxRotation: 0,
+                minRotation: 0,
               },
               grid: {
                 display: false,
@@ -1447,13 +1783,11 @@
           entry.app.replace(/\.exe$/i, "")
         );
         const gamesData = highlighted.map((entry) => entry.hours);
-        const gamesColors = highlighted.map((entry, index) => {
-          const c =
-            colorByApp[entry.app] ||
-            COLOR_PALETTE[index % COLOR_PALETTE.length];
-          // etwas durchsichtiger machen
-          return c + "99";
-        });
+        const gamesBaseColors = highlighted.map((entry, index) =>
+          colorByApp[entry.app] ||
+          COLOR_PALETTE[index % COLOR_PALETTE.length]
+        );
+        const gamesColors = gamesBaseColors.map((c) => c + "cc");
 
         const gamesChartBlock = document.getElementById("games-chart-block");
         const barHeightPx = 26; // etwas niedrigere Höhe pro Spielzeile, wächst aber mit der Anzahl Spiele
@@ -1472,8 +1806,14 @@
                 label: "Spielzeit",
                 data: gamesData,
                 backgroundColor: gamesColors,
-                borderColor: gamesColors,
+                borderColor: gamesBaseColors,
                 borderWidth: 1,
+                hoverBackgroundColor: (ctx) => {
+                  const color = gamesBaseColors[ctx.dataIndex];
+                  return color ? color + "ff" : "transparent";
+                },
+                hoverBorderColor: "#f8fafc",
+                hoverBorderWidth: 2,
               },
             ],
           },
@@ -1482,6 +1822,11 @@
             responsive: true,
             maintainAspectRatio: false,
             animation: false,
+            interaction: {
+              mode: "index",
+              intersect: false,
+              axis: "y",
+            },
             plugins: {
               legend: {
                 display: false,
