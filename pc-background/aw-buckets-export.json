@@ -1,13 +1,13 @@
 {
   "meta": {
-    "generatedAt": "2026-08-25T10:58:18Z",
+    "generatedAt": "2026-08-25T11:03:53Z",
     "timezone": "CEST",
     "source": "http://192.168.178.10:5600",
     "category": [
       "Media",
       "GamesKids"
     ],
-    "eventCount": 192
+    "eventCount": 185
   },
   "events": [
     {
@@ -339,14 +339,6 @@
       }
     },
     {
-      "timestamp": "2025-08-24T19:14:56.770000+00:00",
-      "duration": 2038,
-      "data": {
-        "app": "ApplicationFrameHost.exe",
-        "title": "Einstellungen"
-      }
-    },
-    {
       "timestamp": "2025-09-02T15:31:33.943000+00:00",
       "duration": 1606,
       "data": {
@@ -360,14 +352,6 @@
       "data": {
         "app": "ItTakesTwo.exe",
         "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-09-02T16:32:32.381000+00:00",
-      "duration": 6192,
-      "data": {
-        "app": "ApplicationFrameHost.exe",
-        "title": "Einstellungen"
       }
     },
     {
@@ -627,14 +611,6 @@
       }
     },
     {
-      "timestamp": "2025-11-03T22:17:57.383000+00:00",
-      "duration": 774,
-      "data": {
-        "app": "ApplicationFrameHost.exe",
-        "title": "Einstellungen"
-      }
-    },
-    {
       "timestamp": "2025-11-06T16:17:12.555000+00:00",
       "duration": 3249,
       "data": {
@@ -784,14 +760,6 @@
       "data": {
         "app": "SplitFiction.exe",
         "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-07T14:37:13.996000+00:00",
-      "duration": 677,
-      "data": {
-        "app": "ApplicationFrameHost.exe",
-        "title": "Einstellungen"
       }
     },
     {
@@ -1299,14 +1267,6 @@
       }
     },
     {
-      "timestamp": "2026-06-24T18:02:19.408000+00:00",
-      "duration": 5321,
-      "data": {
-        "app": "ApplicationFrameHost.exe",
-        "title": "Einstellungen"
-      }
-    },
-    {
       "timestamp": "2026-06-25T16:57:42.021000+00:00",
       "duration": 1245,
       "data": {
@@ -1512,22 +1472,6 @@
       "data": {
         "app": "Retimed.exe",
         "title": "Retimed"
-      }
-    },
-    {
-      "timestamp": "2026-08-24T08:43:28.031000+00:00",
-      "duration": 1283,
-      "data": {
-        "app": "ApplicationFrameHost.exe",
-        "title": "Einstellungen"
-      }
-    },
-    {
-      "timestamp": "2026-08-24T09:05:23.903000+00:00",
-      "duration": 1900,
-      "data": {
-        "app": "ApplicationFrameHost.exe",
-        "title": "Einstellungen"
       }
     },
     {
