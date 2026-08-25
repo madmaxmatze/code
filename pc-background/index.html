@@ -18,11 +18,11 @@
        *   ActivityWatch (https://activitywatch.net). Es werden Fenster-Events ausgewertet
        *   (typischerweise aw-watcher-window-Bucket; die data_source-URL sollte auf den
        *   Export dieses Buckets zeigen, nicht nur aw-watcher-afk). Die API liefert
-       *   Rohdaten (timestamp, duration, data.app, data.title). Eine Kategorisierung
-       *   wie „Media > GamesKids“ existiert in der Export-API nicht – sie wird nur in
-       *   der Web-UI zur Laufzeit berechnet. Daher filtern wir hier ausschließlich
-       *   über ein Regex-Muster (CONFIG.kidsPattern) gegen den Fenstertitel (nicht
-       *   gegen data.app, um System-Apps wie ApplicationFrameHost nicht zu treffen).
+       *   Rohdaten (timestamp, duration, data.app, data.title). Kategorien wie
+       *   „Media > GamesKids“ werden bei Live-API-Nutzung aus GET /api/0/settings/classes
+       *   geladen (Regex-Regel der konfigurierten Kategorie CONFIG.kidsCategory).
+       *   Gegen den Fenstertitel gematcht, nicht gegen data.app. Dev-JSON (ohne AW-API)
+       *   kommt vorgefiltert aus aw-buckets-export.py.
        *
        * WICHTIGE ENTSCHEIDUNGEN:
        *   - Events kürzer als 10 Minuten werden ignoriert (Rauschen/Abweichungen).
@@ -40,9 +40,8 @@
        *     dem echten heutigen Datum, damit historische Exporte stabil bleiben.
        *
        * STRUKTUR:
-       *   CONFIG → loadFromCache / loadEvents (lädt CONFIG.data_source) →
-       *   extractEvents (unterstützt buckets-Export und einzelne Bucket-Exports) →
-       *   aggregate (Filter kidsPattern auf title, 10-min-Schwelle, Aufteilung nach
+       *   CONFIG → loadEvents (Settings/classes + Export bei AW-API, Filter, Cache) →
+       *   aggregate (10-min-Schwelle, Aufteilung nach Jahr/Monat/Tag,
        *   Jahr/Monat/Tag, monthlyByYearMonth für variable Zeiträume) →
        *   applyData → updateQuotaDisplay + renderCharts (Chart.js: Pro Monat,
        *   Pro Jahr, Pro Jahr & Spiel; Spiele unter 3h als Honarable Mentions).
@@ -55,10 +54,9 @@
         //   ?data_source=http://localhost:5600/api/0/export  (ActivityWatch-API)
         data_source: getDataSourceFromUrl() || "https://code.mathiasnitzsche.de/pc-background/aw-buckets-export.json",
 
-        // Muster (Regex, case-insensitive) für Kinder-Spiele.
-        // Es wird gegen den Fenstertitel gematcht.
-        kidsPattern:
-          "minecraft|takes|crashers|planet|fifa|cat|lego|goat|sackboy|fiction|sonic|overcooked|brawlstars|brothers|gigabash|nba|rocket|fortnite|hypercharge|wreckfest|orcs|retimed",
+        // ActivityWatch-Kategorie für Kinder-Spiele (Pfad wie in der AW-UI).
+        // Bei Live-API wird die Regex-Regel aus /api/0/settings/classes geladen.
+        kidsCategory: ["Media", "GamesKids"],
 
         // Background image files (URLs oder relative Pfade); eines wird zufällig gewählt.
         backgroundImages: [
@@ -459,7 +457,7 @@
       }
 
       #status {
-        display: none; /* Status nur in der Konsole, nicht im UI */
+        display: none;
       }
 
       #status span.status-badge {
@@ -691,9 +689,82 @@
         section.style.display = "block";
       }
 
-      // Feste Definition des App-Feldes und der Kinder-Spiel-Filter.
       const APP_FIELD = "app";
-      const KIDS_REGEX = new RegExp(CONFIG.kidsPattern, "i");
+      let kidsRegex = null;
+
+      function isLiveActivityWatchSource(source) {
+        const src = source || CONFIG.data_source || "";
+        return /^https?:\/\//i.test(src) && src.includes("/api/0/");
+      }
+
+      function getActivityWatchApiBase(dataSource) {
+        if (!dataSource || !/^https?:/i.test(dataSource)) return null;
+        try {
+          const url = new URL(dataSource);
+          if (/\/api\/0(?:\/|$)/.test(url.pathname)) {
+            return url.origin + "/api/0";
+          }
+        } catch (e) {
+          return null;
+        }
+        return null;
+      }
+
+      function findCategoryRule(classes, categoryPath) {
+        if (!Array.isArray(classes) || !Array.isArray(categoryPath)) return null;
+        return (
+          classes.find((entry) => {
+            const name = entry && entry.name;
+            return (
+              Array.isArray(name) &&
+              name.length === categoryPath.length &&
+              name.every((part, index) => part === categoryPath[index])
+            );
+          })?.rule || null
+        );
+      }
+
+      async function loadKidsRegex(apiBase) {
+        const categoryPath = CONFIG.kidsCategory;
+        if (!Array.isArray(categoryPath) || !categoryPath.length) {
+          throw new Error("CONFIG.kidsCategory fehlt.");
+        }
+
+        let classes = await fetchJson(apiBase + "/settings/classes");
+        if (!Array.isArray(classes)) {
+          const settings = await fetchJson(apiBase + "/settings");
+          classes = settings && settings.classes;
+        }
+        if (!Array.isArray(classes)) {
+          throw new Error("ActivityWatch-Settings enthalten keine classes.");
+        }
+
+        const rule = findCategoryRule(classes, categoryPath);
+        if (!rule || rule.type !== "regex" || !rule.regex) {
+          throw new Error(
+            "Keine Regex-Regel für Kategorie " + categoryPath.join(" > ")
+          );
+        }
+
+        kidsRegex = new RegExp(rule.regex, rule.ignore_case ? "i" : "");
+        console.info(
+          "Kids-Filter:",
+          categoryPath.join(" > "),
+          "|",
+          rule.regex
+        );
+      }
+
+      function filterKidsEvents(events) {
+        if (!kidsRegex) return [];
+        return events.filter((ev) => {
+          if (!ev || typeof ev.duration !== "number" || ev.duration < 600) {
+            return false;
+          }
+          const title = String((ev.data || {}).title || "").trim();
+          return title && kidsRegex.test(title);
+        });
+      }
 
       function monthNameFromIndex(monthIndex) {
         return new Date(2000, monthIndex, 1).toLocaleString(undefined, {
@@ -754,20 +825,23 @@
         badge.style.display = hasOverride ? "none" : "inline-flex";
       }
 
-      // ---- Daten laden (API / Fallback / Cache) ----
+      // ---- Daten laden (API / Cache) ----
       function loadFromCache() {
         try {
           const s = localStorage.getItem(AW_CACHE_KEY);
           if (!s) return null;
-          return JSON.parse(s);
+          const parsed = JSON.parse(s);
+          if (Array.isArray(parsed)) return parsed;
+          if (Array.isArray(parsed?.events)) return parsed.events;
+          return null;
         } catch (e) {
           return null;
         }
       }
 
-      function saveToCache(raw) {
+      function saveToCache(events) {
         try {
-          localStorage.setItem(AW_CACHE_KEY, JSON.stringify(raw));
+          localStorage.setItem(AW_CACHE_KEY, JSON.stringify(events));
         } catch (e) {}
       }
 
@@ -779,52 +853,38 @@
         return await response.json();
       }
 
-      /** Liefert events-Array oder null. Speichert bei Erfolg raw in localStorage. */
+      /** Liefert gefilterte events oder null. Speichert bei Erfolg in localStorage. */
       async function loadEvents() {
-        const messages = [];
-        let sourceLabel = "";
-        let raw;
-
         const source = CONFIG.data_source;
         if (!source) {
           console.error("Keine data_source konfiguriert (CONFIG.data_source fehlt).");
           return null;
         }
+
+        const apiBase = getActivityWatchApiBase(source);
         try {
-          raw = await fetchJson(source);
-          sourceLabel = source.startsWith("http")
-            ? "ActivityWatch-API"
-            : "lokaler JSON-Export";
-          messages.push("Datenquelle: " + source);
+          let events;
+          if (apiBase) {
+            await loadKidsRegex(apiBase);
+            const raw = await fetchJson(source);
+            events = filterKidsEvents(extractEvents(raw));
+            console.info(
+              "ActivityWatch geladen:",
+              events.length,
+              "Kids-Events"
+            );
+          } else {
+            const raw = await fetchJson(source);
+            events = Array.isArray(raw?.events) ? raw.events : [];
+            console.info("Dev-JSON geladen:", events.length, "Events");
+          }
+
+          saveToCache(events);
+          return events;
         } catch (err) {
-          const fileProtocolHint =
-            window.location.protocol === "file:"
-              ? " Hinweis: Direktes Laden von JSON-Dateien per file:// wird von vielen Browsern blockiert. Bitte über einen lokalen Webserver (z. B. http://localhost) aufrufen."
-              : "";
-          console.error("Konnte data_source nicht laden." + fileProtocolHint, err);
+          console.error("Konnte data_source nicht laden.", err);
           return null;
         }
-
-        saveToCache(raw);
-        const events = extractEvents(raw);
-
-        if (!events || !events.length) {
-          console.warn(
-            "Keine Ereignisse im Datensatz gefunden. Quelle: " + sourceLabel
-          );
-          return [];
-        }
-
-        console.info(
-          "ActivityWatch-Daten geladen:",
-          sourceLabel,
-          "|",
-          messages.join(" "),
-          "| Roh-Einträge:",
-          events.length
-        );
-
-        return events;
       }
 
       /**
@@ -851,7 +911,13 @@
 
         if (Array.isArray(raw)) {
           if (raw.length && raw[0] && Array.isArray(raw[0].events)) {
-            return raw.flatMap((b) => b.events || []);
+            return raw.flatMap((b) => {
+              const bucketId = String(b.id || "");
+              if (bucketId && !bucketId.includes("aw-watcher-window")) {
+                return [];
+              }
+              return b.events || [];
+            });
           }
           return raw;
         }
@@ -859,6 +925,9 @@
         if (raw.buckets && typeof raw.buckets === "object") {
           const all = [];
           for (const key of Object.keys(raw.buckets)) {
+            if (!String(key).includes("aw-watcher-window")) {
+              continue;
+            }
             const bucket = raw.buckets[key];
             if (bucket && Array.isArray(bucket.events)) {
               all.push(...bucket.events);
@@ -871,11 +940,10 @@
       }
 
       /**
-       * Filtert nach kidsPattern (nur auf data.title), ignoriert Events < 10 min,
+       * Filtert nach Kids-Kategorie (nur auf data.title), ignoriert Events < 10 min,
        * baut Strukturen für „aktuellen“ Monat (Tage), „aktuelles“ Jahr (Monate) und
        * monthlyByYearMonth für aktuelles + Vorjahr (für variable „letzte X Monate“).
-       * „Aktuell“ bezieht sich dabei auf das jüngste Datum im Datensatz, nicht
-       * auf das echte heutige Datum, damit historische Exporte stabil bleiben.
+       * „Aktuell“: bei Live-API der Kalender (inkl. laufender Monat), sonst jüngstes Kids-Event.
        */
       function normalizeGameName(title, app) {
         const baseName = title || app || "Unbekannt";
@@ -897,23 +965,29 @@
        * Siehe oben – zentrale Aggregation der Events auf Tages-/Monats-/Jahresebene.
        */
       function aggregate(events) {
-        // „Jetzt“ = Zeitpunkt des jüngsten Events im Datensatz (unabhängig vom kidsPattern)
-        let latestTs = null;
+        let latestEventTs = null;
         for (const ev of events) {
           if (!ev || !ev.timestamp) continue;
           const candidate = new Date(ev.timestamp);
           if (Number.isNaN(candidate.getTime())) continue;
-          if (!latestTs || candidate > latestTs) {
-            latestTs = candidate;
+          if (!latestEventTs || candidate > latestEventTs) {
+            latestEventTs = candidate;
           }
         }
 
-        const now = latestTs || new Date();
+        const useCalendarNow = isLiveActivityWatchSource();
+        const now = useCalendarNow
+          ? new Date()
+          : latestEventTs || new Date();
         const currentYear = now.getFullYear();
         const currentMonthIndex = now.getMonth();
         const daysInCurrentMonth = getDaysInMonth(currentYear, currentMonthIndex);
-        /** Tag des Monats des jüngsten Events (für rote „heute“-Linie, datenbasiert statt Kalender). */
-        const currentDayOfMonth = now.getDate();
+        /** Tag für rote „heute“-Linie: Kalendertag (Live-API) oder jüngstes Kids-Event im Monat. */
+        const currentDayOfMonth = useCalendarNow
+          ? new Date().getDate()
+          : latestEventTs
+            ? latestEventTs.getDate()
+            : now.getDate();
 
         const monthlyByYearMonth = Object.create(null);
         const dailyByApp = Array.from({ length: daysInCurrentMonth }, () =>
@@ -956,12 +1030,6 @@
               ? String(appRaw).trim()
               : "Unbekannt";
 
-          // Nur Events zählen, deren Titel auf das Kinder-Spiel-Muster passt.
-          if (!KIDS_REGEX.test(title)) {
-            continue;
-          }
-
-          // "Spielname" aus Titel/App ableiten (inkl. Minecraft-Normalisierung).
           const gameKey = normalizeGameName(title, app);
 
           const start = ts.getTime();
@@ -1961,7 +2029,9 @@
         const agg = aggregate(events);
         if (!agg.matchedEvents || agg.matchedEvents === 0 || !agg.apps.length) {
           console.warn(
-            'Keine Spiele für das Muster "' + CONFIG.kidsPattern + '" gefunden.'
+            'Keine Spiele für Kategorie "' +
+              CONFIG.kidsCategory.join(" > ") +
+              '" gefunden.'
           );
           updateQuotaDisplay(0, agg.currentYear, agg.currentMonthIndex);
           renderCharts(agg);
@@ -2061,23 +2131,26 @@
         document.documentElement.style.setProperty("--dashboard-scale", "1");
         updateDevBadgeVisibility();
 
-        const cachedRaw = loadFromCache();
-        if (cachedRaw) {
-          const events = extractEvents(cachedRaw);
-          if (events && events.length) {
-            console.info("Erste Anzeige aus Cache (letzter Ladevorgang).");
-            applyData(events);
-          }
+        const cachedEvents = loadFromCache();
+        if (cachedEvents && cachedEvents.length) {
+          console.info("Erste Anzeige aus Cache (letzter Ladevorgang).");
+          applyData(cachedEvents);
         } else {
           const now = new Date();
           updateQuotaDisplay(0, now.getFullYear(), now.getMonth());
         }
 
         const events = await loadEvents();
-        if (events && events.length) {
-          dataSourceLoadSucceeded = true;
+        if (events) {
+          if (events.length) {
+            dataSourceLoadSucceeded = true;
+          }
+          applyData(events);
+        } else {
+          console.warn(
+            "Live-Laden fehlgeschlagen – Cache-Anzeige bleibt erhalten."
+          );
         }
-        applyData(events || []);
 
         startRefreshLoop();
 

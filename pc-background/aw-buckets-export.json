@@ -1,406 +1,1098 @@
 {
   "meta": {
-    "generatedAt": "2026-08-24T09:07:56Z",
+    "generatedAt": "2026-08-25T10:58:18Z",
     "timezone": "CEST",
-    "source": "http://192.168.178.10:5600/api/0/export",
-    "eventCount": 199
+    "source": "http://192.168.178.10:5600",
+    "category": [
+      "Media",
+      "GamesKids"
+    ],
+    "eventCount": 192
   },
   "events": [
     {
-      "timestamp": "2026-08-23T13:57:12.118000+00:00",
-      "duration": 3364,
+      "timestamp": "2025-05-03T12:43:50.260000+00:00",
+      "duration": 2897,
       "data": {
-        "app": "Retimed.exe",
-        "title": "Retimed"
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
       }
     },
     {
-      "timestamp": "2026-07-24T10:23:32.430000+00:00",
-      "duration": 4280,
+      "timestamp": "2025-05-04T09:07:09.634000+00:00",
+      "duration": 3279,
       "data": {
-        "app": "Wreckfest",
-        "title": "Wreckfest"
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
       }
     },
     {
-      "timestamp": "2026-07-23T09:24:15.018000+00:00",
-      "duration": 3627,
+      "timestamp": "2025-05-06T16:41:03.685000+00:00",
+      "duration": 2841,
       "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
       }
     },
     {
-      "timestamp": "2026-07-21T17:18:23.585000+00:00",
-      "duration": 3697,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-07-20T09:27:28.366000+00:00",
-      "duration": 3595,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-07-18T19:09:57.285000+00:00",
-      "duration": 1900,
-      "data": {
-        "app": "Orcs Must Die 3",
-        "title": "Orcs Must Die 3"
-      }
-    },
-    {
-      "timestamp": "2026-07-18T18:23:16+00:00",
-      "duration": 2166,
-      "data": {
-        "app": "Orcs Must Die 3",
-        "title": "Orcs Must Die 3"
-      }
-    },
-    {
-      "timestamp": "2026-07-16T08:13:48.189000+00:00",
-      "duration": 3042,
-      "data": {
-        "app": "Orcs Must Die 3",
-        "title": "Orcs Must Die 3"
-      }
-    },
-    {
-      "timestamp": "2026-07-16T07:51:12+00:00",
-      "duration": 1220,
-      "data": {
-        "app": "Wreckfest",
-        "title": "Wreckfest"
-      }
-    },
-    {
-      "timestamp": "2026-07-12T14:44:29+00:00",
-      "duration": 2986,
-      "data": {
-        "app": "Orcs Must Die 3",
-        "title": "Orcs Must Die 3"
-      }
-    },
-    {
-      "timestamp": "2026-07-06T12:02:17.077000+00:00",
-      "duration": 3784,
-      "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
-      }
-    },
-    {
-      "timestamp": "2026-07-05T18:07:43+00:00",
-      "duration": 772,
-      "data": {
-        "app": "Orcs Must Die 3",
-        "title": "Orcs Must Die 3"
-      }
-    },
-    {
-      "timestamp": "2026-07-05T16:27:38+00:00",
-      "duration": 3171,
-      "data": {
-        "app": "NucleusCoop.exe",
-        "title": "Wreckfest"
-      }
-    },
-    {
-      "timestamp": "2026-07-04T18:10:25.184000+00:00",
-      "duration": 3786,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-07-01T13:36:08.620000+00:00",
-      "duration": 1064,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-07-01T13:12:24.747000+00:00",
-      "duration": 1370,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-07-01T12:43:45.429000+00:00",
-      "duration": 675,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-30T12:41:15.080000+00:00",
-      "duration": 2229,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-29T12:53:46.360000+00:00",
-      "duration": 1510,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-29T12:17:27.310000+00:00",
-      "duration": 2164,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-28T07:26:02.888000+00:00",
-      "duration": 2595,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-28T07:01:44.547000+00:00",
-      "duration": 1453,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-26T18:41:04.521000+00:00",
-      "duration": 1971,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-26T18:08:58.861000+00:00",
-      "duration": 1903,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-25T17:18:29.347000+00:00",
-      "duration": 2484,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-25T16:57:43.040000+00:00",
-      "duration": 1243,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-24T15:59:45.445000+00:00",
-      "duration": 3785,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-22T17:48:23.035000+00:00",
-      "duration": 2832,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-15T16:34:01.119000+00:00",
-      "duration": 2767,
-      "data": {
-        "app": "NucleusCoop.exe",
-        "title": "Wreckfest"
-      }
-    },
-    {
-      "timestamp": "2026-06-14T14:03:20+00:00",
-      "duration": 2943,
-      "data": {
-        "app": "NucleusCoop.exe",
-        "title": "Wreckfest"
-      }
-    },
-    {
-      "timestamp": "2026-06-13T10:06:19.619000+00:00",
-      "duration": 2373,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-13T09:52:12.925000+00:00",
-      "duration": 842,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-11T14:32:28.591000+00:00",
-      "duration": 3115,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-06T08:52:51.209000+00:00",
-      "duration": 3207,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-06-04T15:05:27.040000+00:00",
-      "duration": 3253,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-05-15T09:22:12+00:00",
-      "duration": 3517,
-      "data": {
-        "app": "Towers-Win64-Shipping.exe",
-        "title": "Revenge of the Savage Planet"
-      }
-    },
-    {
-      "timestamp": "2026-05-14T10:18:38.324000+00:00",
-      "duration": 3332,
-      "data": {
-        "app": "Unboxed-Win64-Shipping.exe",
-        "title": "HYPERCHARGE: Unboxed"
-      }
-    },
-    {
-      "timestamp": "2026-05-13T18:00:51+00:00",
-      "duration": 3552,
-      "data": {
-        "app": "msedge.exe",
-        "title": "BrawlStars"
-      }
-    },
-    {
-      "timestamp": "2026-05-12T17:53:06+00:00",
-      "duration": 3536,
-      "data": {
-        "app": "Unboxed-Win64-Shipping.exe",
-        "title": "HYPERCHARGE: Unboxed"
-      }
-    },
-    {
-      "timestamp": "2026-05-05T14:53:30+00:00",
-      "duration": 3989,
-      "data": {
-        "app": "FIFA18.exe",
-        "title": "FIFA 18"
-      }
-    },
-    {
-      "timestamp": "2026-04-26T16:39:10.263000+00:00",
-      "duration": 2816,
-      "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
-      }
-    },
-    {
-      "timestamp": "2026-04-20T15:19:44.408000+00:00",
-      "duration": 2936,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2026-04-19T17:02:08.257000+00:00",
-      "duration": 3283,
+      "timestamp": "2025-05-07T22:44:00.181000+00:00",
+      "duration": 723,
       "data": {
         "app": "Brothers-Win64-Shipping.exe",
         "title": "Brothers: A Tale of Two Sons Remake"
       }
     },
     {
-      "timestamp": "2026-04-14T15:23:59+00:00",
-      "duration": 3117,
+      "timestamp": "2025-05-08T10:49:23.901000+00:00",
+      "duration": 2947,
       "data": {
-        "app": "TitanXX-Win64-Shipping.exe",
-        "title": "GigaBash"
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
       }
     },
     {
-      "timestamp": "2026-04-13T16:09:54.674000+00:00",
-      "duration": 2810,
+      "timestamp": "2025-05-10T10:58:39.977000+00:00",
+      "duration": 3868,
       "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
       }
     },
     {
-      "timestamp": "2026-04-12T14:25:43.989000+00:00",
-      "duration": 3064,
+      "timestamp": "2025-05-13T16:18:22.753000+00:00",
+      "duration": 2797,
       "data": {
-        "app": "Overcooked2.exe",
-        "title": "Overcooked2"
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
       }
     },
     {
-      "timestamp": "2026-04-11T18:14:41.796000+00:00",
-      "duration": 2783,
+      "timestamp": "2025-05-15T16:16:06.685000+00:00",
+      "duration": 1684,
       "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
       }
     },
     {
-      "timestamp": "2026-04-10T15:15:04.463000+00:00",
-      "duration": 2782,
+      "timestamp": "2025-05-15T16:44:29.445000+00:00",
+      "duration": 1285,
       "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
       }
     },
     {
-      "timestamp": "2026-04-09T18:54:17+00:00",
-      "duration": 3505,
+      "timestamp": "2025-05-19T15:56:05.481000+00:00",
+      "duration": 2860,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-05-20T16:53:15.487000+00:00",
+      "duration": 2857,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-05-25T11:32:38.912000+00:00",
+      "duration": 2544,
+      "data": {
+        "app": "castle.exe",
+        "title": "Castle Crashers"
+      }
+    },
+    {
+      "timestamp": "2025-05-27T17:26:37.877000+00:00",
+      "duration": 3034,
+      "data": {
+        "app": "castle.exe",
+        "title": "Castle Crashers"
+      }
+    },
+    {
+      "timestamp": "2025-05-30T14:21:06.074000+00:00",
+      "duration": 2809,
+      "data": {
+        "app": "castle.exe",
+        "title": "Castle Crashers"
+      }
+    },
+    {
+      "timestamp": "2025-06-01T16:19:47.377000+00:00",
+      "duration": 3017,
+      "data": {
+        "app": "castle.exe",
+        "title": "Castle Crashers"
+      }
+    },
+    {
+      "timestamp": "2025-06-03T15:51:48.009000+00:00",
+      "duration": 3006,
+      "data": {
+        "app": "castle.exe",
+        "title": "Castle Crashers"
+      }
+    },
+    {
+      "timestamp": "2025-06-07T15:38:11.579000+00:00",
+      "duration": 3760,
+      "data": {
+        "app": "castle.exe",
+        "title": "Castle Crashers"
+      }
+    },
+    {
+      "timestamp": "2025-06-08T15:16:45.070000+00:00",
+      "duration": 2854,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-06-10T09:33:40.739000+00:00",
+      "duration": 3142,
+      "data": {
+        "app": "castle.exe",
+        "title": "Castle Crashers"
+      }
+    },
+    {
+      "timestamp": "2025-06-17T17:15:56.777000+00:00",
+      "duration": 2834,
+      "data": {
+        "app": "Towers-Win64-Shipping.exe",
+        "title": "Revenge of the Savage Planet"
+      }
+    },
+    {
+      "timestamp": "2025-06-20T12:24:34.926000+00:00",
+      "duration": 3569,
+      "data": {
+        "app": "Towers-Win64-Shipping.exe",
+        "title": "Revenge of the Savage Planet"
+      }
+    },
+    {
+      "timestamp": "2025-06-24T14:46:43.251000+00:00",
+      "duration": 3700,
+      "data": {
+        "app": "Towers-Win64-Shipping.exe",
+        "title": "Revenge of the Savage Planet"
+      }
+    },
+    {
+      "timestamp": "2025-06-27T12:42:40.394000+00:00",
+      "duration": 3108,
+      "data": {
+        "app": "Towers-Win64-Shipping.exe",
+        "title": "Revenge of the Savage Planet"
+      }
+    },
+    {
+      "timestamp": "2025-06-30T17:21:02.101000+00:00",
+      "duration": 2872,
+      "data": {
+        "app": "Towers-Win64-Shipping.exe",
+        "title": "Revenge of the Savage Planet"
+      }
+    },
+    {
+      "timestamp": "2025-07-02T13:14:45.853000+00:00",
+      "duration": 2887,
+      "data": {
+        "app": "Towers-Win64-Shipping.exe",
+        "title": "Revenge of the Savage Planet"
+      }
+    },
+    {
+      "timestamp": "2025-07-04T12:35:18.430000+00:00",
+      "duration": 2835,
+      "data": {
+        "app": "Towers-Win64-Shipping.exe",
+        "title": "Revenge of the Savage Planet"
+      }
+    },
+    {
+      "timestamp": "2025-07-06T14:54:44.024000+00:00",
+      "duration": 1921,
       "data": {
         "app": "FIFA18.exe",
         "title": "FIFA 18"
       }
     },
     {
-      "timestamp": "2026-04-03T10:00:58+00:00",
-      "duration": 2647,
+      "timestamp": "2025-07-06T15:27:13.210000+00:00",
+      "duration": 1619,
+      "data": {
+        "app": "castle.exe",
+        "title": "Castle Crashers"
+      }
+    },
+    {
+      "timestamp": "2025-07-07T15:43:23.562000+00:00",
+      "duration": 784,
+      "data": {
+        "app": "FIFA18.exe",
+        "title": "FIFA 18"
+      }
+    },
+    {
+      "timestamp": "2025-07-07T15:58:13.501000+00:00",
+      "duration": 3048,
+      "data": {
+        "app": "FIFA18.exe",
+        "title": "FIFA 18"
+      }
+    },
+    {
+      "timestamp": "2025-07-08T14:48:25.020000+00:00",
+      "duration": 1836,
+      "data": {
+        "app": "FIFA18.exe",
+        "title": "FIFA 18"
+      }
+    },
+    {
+      "timestamp": "2025-07-08T15:19:25.401000+00:00",
+      "duration": 906,
+      "data": {
+        "app": "FIFA18.exe",
+        "title": "FIFA 18"
+      }
+    },
+    {
+      "timestamp": "2025-07-10T14:45:02.561000+00:00",
+      "duration": 2533,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-07-21T16:51:53.950000+00:00",
+      "duration": 1307,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Minecraft* Forge 1.20.4 - Einzelspieler"
+      }
+    },
+    {
+      "timestamp": "2025-07-21T17:16:37.685000+00:00",
+      "duration": 1250,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Minecraft* Forge 1.20.4 - Einzelspieler"
+      }
+    },
+    {
+      "timestamp": "2025-07-22T16:30:28.394000+00:00",
+      "duration": 885,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Minecraft* Forge 1.20.4 - Einzelspieler"
+      }
+    },
+    {
+      "timestamp": "2025-07-22T16:45:20.680000+00:00",
+      "duration": 2236,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Minecraft* Forge 1.20.4 - Einzelspieler"
+      }
+    },
+    {
+      "timestamp": "2025-07-22T17:22:37.088000+00:00",
+      "duration": 3119,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Minecraft* Forge 1.20.4"
+      }
+    },
+    {
+      "timestamp": "2025-07-23T11:20:36.546000+00:00",
+      "duration": 790,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Minecraft* Forge 1.20.4 - Einzelspieler"
+      }
+    },
+    {
+      "timestamp": "2025-07-23T11:43:49.867000+00:00",
+      "duration": 1699,
+      "data": {
+        "app": "FIFA18.exe",
+        "title": "FIFA 18"
+      }
+    },
+    {
+      "timestamp": "2025-08-18T16:53:03.037000+00:00",
+      "duration": 3077,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-08-24T19:14:56.770000+00:00",
+      "duration": 2038,
+      "data": {
+        "app": "ApplicationFrameHost.exe",
+        "title": "Einstellungen"
+      }
+    },
+    {
+      "timestamp": "2025-09-02T15:31:33.943000+00:00",
+      "duration": 1606,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-09-02T15:58:24.545000+00:00",
+      "duration": 2032,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-09-02T16:32:32.381000+00:00",
+      "duration": 6192,
+      "data": {
+        "app": "ApplicationFrameHost.exe",
+        "title": "Einstellungen"
+      }
+    },
+    {
+      "timestamp": "2025-09-03T10:07:04.083000+00:00",
+      "duration": 3257,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-09-05T08:59:04.713000+00:00",
+      "duration": 3672,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-09-05T11:59:13.237000+00:00",
+      "duration": 1579,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Minecraft* 1.21.5"
+      }
+    },
+    {
+      "timestamp": "2025-09-07T15:58:01.705000+00:00",
+      "duration": 1071,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Minecraft* 1.21.8 - Einzelspieler"
+      }
+    },
+    {
+      "timestamp": "2025-09-07T16:23:07.564000+00:00",
+      "duration": 2145,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Minecraft* 1.21.8 - Mehrspieler (LAN)"
+      }
+    },
+    {
+      "timestamp": "2025-09-07T17:04:07.152000+00:00",
+      "duration": 622,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Minecraft* 1.21.8 - Mehrspieler (LAN)"
+      }
+    },
+    {
+      "timestamp": "2025-09-07T17:14:35.297000+00:00",
+      "duration": 1013,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Minecraft* 1.21.8 - Mehrspieler (LAN)"
+      }
+    },
+    {
+      "timestamp": "2025-09-09T16:30:58.420000+00:00",
+      "duration": 3108,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Minecraft* 1.21.8 - Mehrspieler (LAN)"
+      }
+    },
+    {
+      "timestamp": "2025-09-13T10:46:55.843000+00:00",
+      "duration": 2295,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-09-16T16:00:52.182000+00:00",
+      "duration": 2893,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-09-22T15:53:12.551000+00:00",
+      "duration": 2578,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-09-30T14:48:23.207000+00:00",
+      "duration": 4061,
+      "data": {
+        "app": "ItTakesTwo.exe",
+        "title": "It Takes Two"
+      }
+    },
+    {
+      "timestamp": "2025-10-04T15:14:58.893000+00:00",
+      "duration": 2399,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-10-05T16:45:48.742000+00:00",
+      "duration": 755,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-10-05T16:58:47.142000+00:00",
+      "duration": 925,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-10-05T17:14:34.464000+00:00",
+      "duration": 1221,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-10-07T15:37:46.929000+00:00",
+      "duration": 1009,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-10-07T16:02:51.720000+00:00",
+      "duration": 1091,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-10-07T16:21:06.466000+00:00",
+      "duration": 1326,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-10-09T14:14:49.129000+00:00",
+      "duration": 912,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-10-10T13:06:26.096000+00:00",
+      "duration": 2910,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-10-11T16:19:14.468000+00:00",
+      "duration": 3982,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-10-12T15:07:44.703000+00:00",
+      "duration": 3063,
+      "data": {
+        "app": "LEGO Party.exe",
+        "title": "LEGO® Party!"
+      }
+    },
+    {
+      "timestamp": "2025-10-14T16:29:00.897000+00:00",
+      "duration": 3987,
+      "data": {
+        "app": "Cat Quest II.exe",
+        "title": "Cat Quest II"
+      }
+    },
+    {
+      "timestamp": "2025-10-16T16:24:40.594000+00:00",
+      "duration": 3364,
+      "data": {
+        "app": "Cat Quest II.exe",
+        "title": "Cat Quest II"
+      }
+    },
+    {
+      "timestamp": "2025-10-17T17:05:41.621000+00:00",
+      "duration": 2246,
+      "data": {
+        "app": "Cat Quest II.exe",
+        "title": "Cat Quest II"
+      }
+    },
+    {
+      "timestamp": "2025-10-18T16:31:30.887000+00:00",
+      "duration": 2672,
+      "data": {
+        "app": "Cat Quest II.exe",
+        "title": "Cat Quest II"
+      }
+    },
+    {
+      "timestamp": "2025-10-29T17:11:56.890000+00:00",
+      "duration": 2983,
+      "data": {
+        "app": "Cat Quest II.exe",
+        "title": "Cat Quest II"
+      }
+    },
+    {
+      "timestamp": "2025-10-30T13:13:18.059000+00:00",
+      "duration": 6130,
+      "data": {
+        "app": "Cat Quest II.exe",
+        "title": "Cat Quest II"
+      }
+    },
+    {
+      "timestamp": "2025-10-31T13:31:16.805000+00:00",
+      "duration": 5193,
+      "data": {
+        "app": "Cat Quest II.exe",
+        "title": "Cat Quest II"
+      }
+    },
+    {
+      "timestamp": "2025-11-01T11:17:06.830000+00:00",
+      "duration": 3967,
+      "data": {
+        "app": "Cat Quest II.exe",
+        "title": "Cat Quest II"
+      }
+    },
+    {
+      "timestamp": "2025-11-02T00:43:55.612000+00:00",
+      "duration": 1358,
+      "data": {
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
+      }
+    },
+    {
+      "timestamp": "2025-11-03T22:17:57.383000+00:00",
+      "duration": 774,
+      "data": {
+        "app": "ApplicationFrameHost.exe",
+        "title": "Einstellungen"
+      }
+    },
+    {
+      "timestamp": "2025-11-06T16:17:12.555000+00:00",
+      "duration": 3249,
+      "data": {
+        "app": "Cat Quest II.exe",
+        "title": "Cat Quest II"
+      }
+    },
+    {
+      "timestamp": "2025-11-08T15:39:39.648000+00:00",
+      "duration": 3101,
+      "data": {
+        "app": "Cat Quest II.exe",
+        "title": "Cat Quest II"
+      }
+    },
+    {
+      "timestamp": "2025-11-15T10:51:45.834000+00:00",
+      "duration": 2966,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-11-16T13:01:14.457000+00:00",
+      "duration": 2362,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T16:13:58.116000+00:00",
+      "duration": 3096,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-11-22T14:40:20.181000+00:00",
+      "duration": 3999,
+      "data": {
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
+      }
+    },
+    {
+      "timestamp": "2025-11-23T17:04:32.269000+00:00",
+      "duration": 3004,
+      "data": {
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
+      }
+    },
+    {
+      "timestamp": "2025-11-25T16:43:29.337000+00:00",
+      "duration": 3391,
+      "data": {
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
+      }
+    },
+    {
+      "timestamp": "2025-11-30T18:07:08.252000+00:00",
+      "duration": 2797,
+      "data": {
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
+      }
+    },
+    {
+      "timestamp": "2025-12-02T16:28:01.999000+00:00",
+      "duration": 3487,
+      "data": {
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
+      }
+    },
+    {
+      "timestamp": "2025-12-12T13:38:34.158000+00:00",
+      "duration": 3419,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2025-12-18T16:20:31.375000+00:00",
+      "duration": 2838,
+      "data": {
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
+      }
+    },
+    {
+      "timestamp": "2025-12-18T17:08:08.573000+00:00",
+      "duration": 756,
+      "data": {
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
+      }
+    },
+    {
+      "timestamp": "2025-12-19T13:35:54.379000+00:00",
+      "duration": 4481,
+      "data": {
+        "app": "Towers-Win64-Shipping.exe",
+        "title": "Revenge of the Savage Planet"
+      }
+    },
+    {
+      "timestamp": "2025-12-20T10:31:18.371000+00:00",
+      "duration": 2864,
+      "data": {
+        "app": "Towers-Win64-Shipping.exe",
+        "title": "Revenge of the Savage Planet"
+      }
+    },
+    {
+      "timestamp": "2026-01-01T18:03:09.143000+00:00",
+      "duration": 2447,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-01-02T14:39:13.900000+00:00",
+      "duration": 3222,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-01-05T17:14:35.188000+00:00",
+      "duration": 2787,
+      "data": {
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
+      }
+    },
+    {
+      "timestamp": "2026-01-06T15:46:25.978000+00:00",
+      "duration": 3427,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-01-07T14:37:13.996000+00:00",
+      "duration": 677,
+      "data": {
+        "app": "ApplicationFrameHost.exe",
+        "title": "Einstellungen"
+      }
+    },
+    {
+      "timestamp": "2026-01-08T16:58:14.327000+00:00",
+      "duration": 3789,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-01-09T14:23:47.666000+00:00",
+      "duration": 3747,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-01-10T14:18:19.582000+00:00",
+      "duration": 3987,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-01-11T17:14:01.849000+00:00",
+      "duration": 3819,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-01-20T16:23:45.485000+00:00",
+      "duration": 4064,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-01-24T18:00:18.190000+00:00",
+      "duration": 3451,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-01-27T16:07:50.251000+00:00",
+      "duration": 2923,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-01-29T13:35:02.018000+00:00",
+      "duration": 1537,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-01-29T14:00:43.161000+00:00",
+      "duration": 1149,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-01-30T13:38:21.966000+00:00",
+      "duration": 4142,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-01-31T15:48:40.049000+00:00",
+      "duration": 2812,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-06T15:19:59.974000+00:00",
+      "duration": 3491,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-07T15:27:28.985000+00:00",
+      "duration": 3075,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-10T15:34:30.990000+00:00",
+      "duration": 4065,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-12T16:42:20.308000+00:00",
+      "duration": 3046,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-13T13:41:04.012000+00:00",
+      "duration": 722,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-13T13:53:06.790000+00:00",
+      "duration": 662,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-13T14:04:18.358000+00:00",
+      "duration": 1204,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-14T12:17:42.507000+00:00",
+      "duration": 2998,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-15T15:49:06.705000+00:00",
+      "duration": 1830,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-17T16:27:35.424000+00:00",
+      "duration": 2879,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-20T13:38:55.562000+00:00",
+      "duration": 3384,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-21T16:49:14.225000+00:00",
+      "duration": 3623,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-22T10:46:56.823000+00:00",
+      "duration": 3757,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-24T17:36:49.458000+00:00",
+      "duration": 4188,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-02-28T17:39:12.440000+00:00",
+      "duration": 2715,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-03-01T17:28:04.478000+00:00",
+      "duration": 2969,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-03-03T17:57:54.254000+00:00",
+      "duration": 3172,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-03-08T10:22:26.578000+00:00",
+      "duration": 2859,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-03-10T16:51:05.931000+00:00",
+      "duration": 2835,
+      "data": {
+        "app": "SplitFiction.exe",
+        "title": "Split Fiction"
+      }
+    },
+    {
+      "timestamp": "2026-03-14T16:45:55.454000+00:00",
+      "duration": 3676,
+      "data": {
+        "app": "Sackboy-Win64-Shipping.exe",
+        "title": "Sackboy™: A Big Adventure"
+      }
+    },
+    {
+      "timestamp": "2026-03-15T09:07:36.588000+00:00",
+      "duration": 2782,
+      "data": {
+        "app": "Overcooked2.exe",
+        "title": "Overcooked2"
+      }
+    },
+    {
+      "timestamp": "2026-03-17T17:47:36.512000+00:00",
+      "duration": 2967,
+      "data": {
+        "app": "FIFA18.exe",
+        "title": "FIFA 18"
+      }
+    },
+    {
+      "timestamp": "2026-03-20T13:40:42.465000+00:00",
+      "duration": 2834,
+      "data": {
+        "app": "FIFA18.exe",
+        "title": "FIFA 18"
+      }
+    },
+    {
+      "timestamp": "2026-03-22T16:45:05.770000+00:00",
+      "duration": 3359,
+      "data": {
+        "app": "Overcooked2.exe",
+        "title": "Overcooked2"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T18:15:27.692000+00:00",
+      "duration": 3186,
+      "data": {
+        "app": "FIFA18.exe",
+        "title": "FIFA 18"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T16:14:12.864000+00:00",
+      "duration": 3550,
+      "data": {
+        "app": "FIFA18.exe",
+        "title": "FIFA 18"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T10:00:45+00:00",
+      "duration": 2673,
       "data": {
         "app": "BrawlStars",
         "title": "BrawlStars"
@@ -415,1187 +1107,443 @@
       }
     },
     {
-      "timestamp": "2026-03-31T10:00:45+00:00",
-      "duration": 2673,
+      "timestamp": "2026-04-03T10:00:58+00:00",
+      "duration": 2647,
       "data": {
         "app": "BrawlStars",
         "title": "BrawlStars"
       }
     },
     {
-      "timestamp": "2026-03-28T16:14:13.872000+00:00",
-      "duration": 3547,
+      "timestamp": "2026-04-09T18:54:16.122000+00:00",
+      "duration": 3506,
       "data": {
         "app": "FIFA18.exe",
         "title": "FIFA 18"
       }
     },
     {
-      "timestamp": "2026-03-27T18:15:28+00:00",
-      "duration": 3186,
+      "timestamp": "2026-04-10T15:15:03.415000+00:00",
+      "duration": 2784,
       "data": {
-        "app": "FIFA18.exe",
-        "title": "FIFA 18"
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
       }
     },
     {
-      "timestamp": "2026-03-22T16:45:06.787000+00:00",
-      "duration": 3357,
+      "timestamp": "2026-04-11T18:14:40.766000+00:00",
+      "duration": 2784,
+      "data": {
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
+      }
+    },
+    {
+      "timestamp": "2026-04-12T14:25:42.984000+00:00",
+      "duration": 3066,
       "data": {
         "app": "Overcooked2.exe",
         "title": "Overcooked2"
       }
     },
     {
-      "timestamp": "2026-03-20T13:40:43+00:00",
-      "duration": 2833,
-      "data": {
-        "app": "FIFA18.exe",
-        "title": "FIFA 18"
-      }
-    },
-    {
-      "timestamp": "2026-03-17T17:47:37+00:00",
-      "duration": 2967,
-      "data": {
-        "app": "FIFA18.exe",
-        "title": "FIFA 18"
-      }
-    },
-    {
-      "timestamp": "2026-03-15T09:07:36.588000+00:00",
-      "duration": 2781,
-      "data": {
-        "app": "Overcooked2.exe",
-        "title": "Overcooked2"
-      }
-    },
-    {
-      "timestamp": "2026-03-14T16:45:56.530000+00:00",
-      "duration": 3674,
-      "data": {
-        "app": "Sackboy-Win64-Shipping.exe",
-        "title": "Sackboy™: A Big Adventure"
-      }
-    },
-    {
-      "timestamp": "2026-03-10T16:51:05.931000+00:00",
-      "duration": 2835,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-03-08T10:22:27.605000+00:00",
-      "duration": 2857,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-03-03T17:57:55.302000+00:00",
-      "duration": 3170,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-03-01T17:28:05.501000+00:00",
-      "duration": 2967,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-28T17:39:12.440000+00:00",
-      "duration": 2714,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-24T17:36:50.494000+00:00",
-      "duration": 4186,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-22T10:46:57.865000+00:00",
-      "duration": 3755,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-21T16:49:15.265000+00:00",
-      "duration": 3621,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-20T13:38:56.590000+00:00",
-      "duration": 3383,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-17T16:27:36.468000+00:00",
-      "duration": 2877,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-15T15:49:07.741000+00:00",
-      "duration": 1829,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-14T12:17:43.536000+00:00",
-      "duration": 2996,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-13T14:04:19.403000+00:00",
-      "duration": 1202,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-13T13:53:07.825000+00:00",
-      "duration": 660,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-13T13:41:05.035000+00:00",
-      "duration": 720,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-12T16:42:21.329000+00:00",
-      "duration": 3044,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-10T15:34:32.021000+00:00",
-      "duration": 4063,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-07T15:27:30.020000+00:00",
-      "duration": 3073,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-02-06T15:20:01.012000+00:00",
-      "duration": 3489,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-31T15:48:40.049000+00:00",
+      "timestamp": "2026-04-13T16:09:53.635000+00:00",
       "duration": 2811,
       "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-30T13:38:22.992000+00:00",
-      "duration": 4140,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-29T14:00:44.180000+00:00",
-      "duration": 1147,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-29T13:35:03.060000+00:00",
-      "duration": 1535,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-27T16:07:51.288000+00:00",
-      "duration": 2921,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-24T18:00:19.227000+00:00",
-      "duration": 3450,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-20T16:23:46.524000+00:00",
-      "duration": 4062,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-11T17:14:02.889000+00:00",
-      "duration": 3817,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-10T14:18:20.615000+00:00",
-      "duration": 3985,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-09T14:23:48.699000+00:00",
-      "duration": 3746,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-08T16:58:15.363000+00:00",
-      "duration": 3787,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-06T15:46:27.027000+00:00",
-      "duration": 3425,
-      "data": {
-        "app": "SplitFiction.exe",
-        "title": "Split Fiction"
-      }
-    },
-    {
-      "timestamp": "2026-01-05T17:14:36.229000+00:00",
-      "duration": 2785,
-      "data": {
         "app": "Goat2-Win64-Shipping.exe",
         "title": "Goat Simulator 3"
       }
     },
     {
-      "timestamp": "2026-01-02T14:39:14.917000+00:00",
-      "duration": 3220,
+      "timestamp": "2026-04-14T15:23:58.659000+00:00",
+      "duration": 3117,
       "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
+        "app": "TitanXX-Win64-Shipping.exe",
+        "title": "GigaBash"
       }
     },
     {
-      "timestamp": "2026-01-01T18:03:10.162000+00:00",
-      "duration": 2445,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-12-20T10:31:33.126000+00:00",
-      "duration": 2848,
-      "data": {
-        "app": "Towers-Win64-Shipping.exe",
-        "title": "Revenge of the Savage Planet"
-      }
-    },
-    {
-      "timestamp": "2025-12-19T13:35:55.423000+00:00",
-      "duration": 4479,
-      "data": {
-        "app": "Towers-Win64-Shipping.exe",
-        "title": "Revenge of the Savage Planet"
-      }
-    },
-    {
-      "timestamp": "2025-12-18T17:08:09.599000+00:00",
-      "duration": 754,
-      "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
-      }
-    },
-    {
-      "timestamp": "2025-12-18T16:20:32.410000+00:00",
-      "duration": 2836,
-      "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
-      }
-    },
-    {
-      "timestamp": "2025-12-12T13:38:35.164000+00:00",
-      "duration": 3417,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-12-11T16:43:07.984000+00:00",
-      "duration": 3221,
-      "data": {
-        "app": "SonicRacingCrossWorldsSteam.exe",
-        "title": "SonicRacingCrossWorlds"
-      }
-    },
-    {
-      "timestamp": "2025-12-09T15:59:10.691000+00:00",
-      "duration": 3797,
-      "data": {
-        "app": "SonicRacingCrossWorldsSteam.exe",
-        "title": "SonicRacingCrossWorlds"
-      }
-    },
-    {
-      "timestamp": "2025-12-08T17:24:03.534000+00:00",
-      "duration": 3143,
-      "data": {
-        "app": "SonicRacingCrossWorldsSteam.exe",
-        "title": "SonicRacingCrossWorlds"
-      }
-    },
-    {
-      "timestamp": "2025-12-05T13:54:47.554000+00:00",
-      "duration": 4067,
-      "data": {
-        "app": "SonicRacingCrossWorldsSteam.exe",
-        "title": "SonicRacingCrossWorlds"
-      }
-    },
-    {
-      "timestamp": "2025-12-04T15:35:50.917000+00:00",
-      "duration": 3691,
-      "data": {
-        "app": "SonicRacingCrossWorldsSteam.exe",
-        "title": "SonicRacingCrossWorlds"
-      }
-    },
-    {
-      "timestamp": "2025-12-02T17:28:35.370000+00:00",
-      "duration": 1083,
-      "data": {
-        "app": "SonicRacingCrossWorldsSteam.exe",
-        "title": "SonicRacingCrossWorlds"
-      }
-    },
-    {
-      "timestamp": "2025-12-02T16:28:03.038000+00:00",
-      "duration": 3485,
-      "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
-      }
-    },
-    {
-      "timestamp": "2025-11-30T18:07:08.252000+00:00",
-      "duration": 2796,
-      "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
-      }
-    },
-    {
-      "timestamp": "2025-11-25T16:43:36.233000+00:00",
-      "duration": 3382,
-      "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
-      }
-    },
-    {
-      "timestamp": "2025-11-23T17:04:33.303000+00:00",
-      "duration": 3002,
-      "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
-      }
-    },
-    {
-      "timestamp": "2025-11-22T14:40:21.205000+00:00",
-      "duration": 3997,
-      "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T16:13:59.123000+00:00",
-      "duration": 3094,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-11-16T13:01:15.475000+00:00",
-      "duration": 2360,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-11-15T10:51:46.853000+00:00",
-      "duration": 2964,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-11-08T15:39:39.648000+00:00",
-      "duration": 3100,
-      "data": {
-        "app": "Cat Quest II.exe",
-        "title": "Cat Quest II"
-      }
-    },
-    {
-      "timestamp": "2025-11-06T16:17:12.555000+00:00",
-      "duration": 3248,
-      "data": {
-        "app": "Cat Quest II.exe",
-        "title": "Cat Quest II"
-      }
-    },
-    {
-      "timestamp": "2025-11-02T00:45:17.079000+00:00",
-      "duration": 1274,
-      "data": {
-        "app": "Goat2-Win64-Shipping.exe",
-        "title": "Goat Simulator 3"
-      }
-    },
-    {
-      "timestamp": "2025-11-01T11:17:07.843000+00:00",
-      "duration": 3965,
-      "data": {
-        "app": "Cat Quest II.exe",
-        "title": "Cat Quest II"
-      }
-    },
-    {
-      "timestamp": "2025-10-31T13:31:17.818000+00:00",
-      "duration": 5191,
-      "data": {
-        "app": "Cat Quest II.exe",
-        "title": "Cat Quest II"
-      }
-    },
-    {
-      "timestamp": "2025-10-30T13:13:19.065000+00:00",
-      "duration": 6128,
-      "data": {
-        "app": "Cat Quest II.exe",
-        "title": "Cat Quest II"
-      }
-    },
-    {
-      "timestamp": "2025-10-29T17:11:57.908000+00:00",
-      "duration": 2981,
-      "data": {
-        "app": "Cat Quest II.exe",
-        "title": "Cat Quest II"
-      }
-    },
-    {
-      "timestamp": "2025-10-18T16:31:30.887000+00:00",
-      "duration": 2671,
-      "data": {
-        "app": "Cat Quest II.exe",
-        "title": "Cat Quest II"
-      }
-    },
-    {
-      "timestamp": "2025-10-17T17:05:42.632000+00:00",
-      "duration": 2244,
-      "data": {
-        "app": "Cat Quest II.exe",
-        "title": "Cat Quest II"
-      }
-    },
-    {
-      "timestamp": "2025-10-16T16:24:41.605000+00:00",
-      "duration": 3362,
-      "data": {
-        "app": "Cat Quest II.exe",
-        "title": "Cat Quest II"
-      }
-    },
-    {
-      "timestamp": "2025-10-14T16:29:01.902000+00:00",
-      "duration": 3985,
-      "data": {
-        "app": "Cat Quest II.exe",
-        "title": "Cat Quest II"
-      }
-    },
-    {
-      "timestamp": "2025-10-12T15:07:45.745000+00:00",
-      "duration": 3061,
-      "data": {
-        "app": "LEGO Party.exe",
-        "title": "LEGO® Party!"
-      }
-    },
-    {
-      "timestamp": "2025-10-11T16:19:15.480000+00:00",
-      "duration": 3980,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-10-10T13:06:27.102000+00:00",
-      "duration": 2908,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-10-09T14:14:50.146000+00:00",
-      "duration": 910,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-10-07T16:21:07.474000+00:00",
-      "duration": 1324,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-10-07T16:02:52.733000+00:00",
-      "duration": 1089,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-10-07T15:37:47.934000+00:00",
-      "duration": 1007,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-10-05T17:14:35.472000+00:00",
-      "duration": 1219,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-10-05T16:58:48.152000+00:00",
-      "duration": 923,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-10-05T16:45:49.751000+00:00",
-      "duration": 753,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-10-04T15:14:59.910000+00:00",
-      "duration": 2397,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Rafa - Minecraft"
-      }
-    },
-    {
-      "timestamp": "2025-09-30T14:48:24.241000+00:00",
-      "duration": 4059,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-09-22T15:53:12.551000+00:00",
-      "duration": 2577,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-09-16T16:00:55.267000+00:00",
-      "duration": 2889,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-09-13T10:46:56.886000+00:00",
-      "duration": 2293,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-09-09T16:30:59.436000+00:00",
-      "duration": 3106,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Minecraft* 1.21.8 - Mehrspieler (LAN)"
-      }
-    },
-    {
-      "timestamp": "2025-09-07T17:14:36.301000+00:00",
-      "duration": 1011,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Minecraft* 1.21.8 - Mehrspieler (LAN)"
-      }
-    },
-    {
-      "timestamp": "2025-09-07T17:04:08.164000+00:00",
-      "duration": 620,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Minecraft* 1.21.8 - Mehrspieler (LAN)"
-      }
-    },
-    {
-      "timestamp": "2025-09-07T16:23:08.574000+00:00",
-      "duration": 2143,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Minecraft* 1.21.8 - Mehrspieler (LAN)"
-      }
-    },
-    {
-      "timestamp": "2025-09-07T15:58:02.715000+00:00",
-      "duration": 1069,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Minecraft* 1.21.8 - Einzelspieler"
-      }
-    },
-    {
-      "timestamp": "2025-09-05T11:59:14.271000+00:00",
-      "duration": 1577,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Minecraft* 1.21.5"
-      }
-    },
-    {
-      "timestamp": "2025-09-05T08:59:05.746000+00:00",
-      "duration": 3669,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-09-03T10:07:08.218000+00:00",
-      "duration": 3251,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-09-02T15:58:25.568000+00:00",
-      "duration": 2030,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-09-02T15:31:34.969000+00:00",
-      "duration": 1604,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-08-18T16:53:04.155000+00:00",
-      "duration": 3075,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-07-23T11:43:50.886000+00:00",
-      "duration": 1697,
-      "data": {
-        "app": "FIFA18.exe",
-        "title": "FIFA 18"
-      }
-    },
-    {
-      "timestamp": "2025-07-23T11:20:37.599000+00:00",
-      "duration": 788,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Minecraft* Forge 1.20.4 - Einzelspieler"
-      }
-    },
-    {
-      "timestamp": "2025-07-22T17:22:38.118000+00:00",
-      "duration": 3116,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Minecraft* Forge 1.20.4"
-      }
-    },
-    {
-      "timestamp": "2025-07-22T16:45:21.718000+00:00",
-      "duration": 2235,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Minecraft* Forge 1.20.4 - Einzelspieler"
-      }
-    },
-    {
-      "timestamp": "2025-07-22T16:30:29.431000+00:00",
-      "duration": 883,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Minecraft* Forge 1.20.4 - Einzelspieler"
-      }
-    },
-    {
-      "timestamp": "2025-07-21T17:16:38.735000+00:00",
-      "duration": 1248,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Minecraft* Forge 1.20.4 - Einzelspieler"
-      }
-    },
-    {
-      "timestamp": "2025-07-21T16:51:55.003000+00:00",
-      "duration": 1305,
-      "data": {
-        "app": "javaw.exe",
-        "title": "Minecraft* Forge 1.20.4 - Einzelspieler"
-      }
-    },
-    {
-      "timestamp": "2025-07-10T14:45:04.956000+00:00",
-      "duration": 2529,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-07-08T15:19:26.420000+00:00",
-      "duration": 904,
-      "data": {
-        "app": "FIFA18.exe",
-        "title": "FIFA 18"
-      }
-    },
-    {
-      "timestamp": "2025-07-08T14:48:26.039000+00:00",
-      "duration": 1834,
-      "data": {
-        "app": "FIFA18.exe",
-        "title": "FIFA 18"
-      }
-    },
-    {
-      "timestamp": "2025-07-07T15:58:39.834000+00:00",
-      "duration": 3021,
-      "data": {
-        "app": "FIFA18.exe",
-        "title": "FIFA 18"
-      }
-    },
-    {
-      "timestamp": "2025-07-07T15:43:24.572000+00:00",
-      "duration": 780,
-      "data": {
-        "app": "FIFA18.exe",
-        "title": "FIFA 18"
-      }
-    },
-    {
-      "timestamp": "2025-07-06T15:27:14.216000+00:00",
-      "duration": 1617,
-      "data": {
-        "app": "castle.exe",
-        "title": "Castle Crashers"
-      }
-    },
-    {
-      "timestamp": "2025-07-06T14:54:45.043000+00:00",
-      "duration": 1919,
-      "data": {
-        "app": "FIFA18.exe",
-        "title": "FIFA 18"
-      }
-    },
-    {
-      "timestamp": "2025-07-04T12:35:18.430000+00:00",
-      "duration": 2834,
-      "data": {
-        "app": "Towers-Win64-Shipping.exe",
-        "title": "Revenge of the Savage Planet"
-      }
-    },
-    {
-      "timestamp": "2025-07-02T13:14:46.901000+00:00",
-      "duration": 2885,
-      "data": {
-        "app": "Towers-Win64-Shipping.exe",
-        "title": "Revenge of the Savage Planet"
-      }
-    },
-    {
-      "timestamp": "2025-06-30T17:41:12.747000+00:00",
-      "duration": 1661,
-      "data": {
-        "app": "Towers-Win64-Shipping.exe",
-        "title": "Revenge of the Savage Planet"
-      }
-    },
-    {
-      "timestamp": "2025-06-30T17:21:03.156000+00:00",
-      "duration": 1207,
-      "data": {
-        "app": "Towers-Win64-Shipping.exe",
-        "title": "Revenge of the Savage Planet"
-      }
-    },
-    {
-      "timestamp": "2025-06-27T12:42:41.488000+00:00",
-      "duration": 3106,
-      "data": {
-        "app": "Towers-Win64-Shipping.exe",
-        "title": "Revenge of the Savage Planet"
-      }
-    },
-    {
-      "timestamp": "2025-06-24T14:46:43.251000+00:00",
-      "duration": 3699,
-      "data": {
-        "app": "Towers-Win64-Shipping.exe",
-        "title": "Revenge of the Savage Planet"
-      }
-    },
-    {
-      "timestamp": "2025-06-20T12:24:34.926000+00:00",
-      "duration": 3568,
-      "data": {
-        "app": "Towers-Win64-Shipping.exe",
-        "title": "Revenge of the Savage Planet"
-      }
-    },
-    {
-      "timestamp": "2025-06-17T17:15:57.821000+00:00",
-      "duration": 2832,
-      "data": {
-        "app": "Towers-Win64-Shipping.exe",
-        "title": "Revenge of the Savage Planet"
-      }
-    },
-    {
-      "timestamp": "2025-06-10T09:33:41.754000+00:00",
-      "duration": 3140,
-      "data": {
-        "app": "castle.exe",
-        "title": "Castle Crashers"
-      }
-    },
-    {
-      "timestamp": "2025-06-08T15:16:46.119000+00:00",
-      "duration": 2852,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-06-07T15:38:12.593000+00:00",
-      "duration": 3758,
-      "data": {
-        "app": "castle.exe",
-        "title": "Castle Crashers"
-      }
-    },
-    {
-      "timestamp": "2025-06-03T15:51:49.012000+00:00",
-      "duration": 3004,
-      "data": {
-        "app": "castle.exe",
-        "title": "Castle Crashers"
-      }
-    },
-    {
-      "timestamp": "2025-06-01T16:19:48.380000+00:00",
-      "duration": 3015,
-      "data": {
-        "app": "castle.exe",
-        "title": "Castle Crashers"
-      }
-    },
-    {
-      "timestamp": "2025-05-30T14:21:07.100000+00:00",
-      "duration": 2807,
-      "data": {
-        "app": "castle.exe",
-        "title": "Castle Crashers"
-      }
-    },
-    {
-      "timestamp": "2025-05-27T17:26:38.889000+00:00",
-      "duration": 3032,
-      "data": {
-        "app": "castle.exe",
-        "title": "Castle Crashers"
-      }
-    },
-    {
-      "timestamp": "2025-05-25T11:32:54.528000+00:00",
-      "duration": 2528,
-      "data": {
-        "app": "castle.exe",
-        "title": "Castle Crashers"
-      }
-    },
-    {
-      "timestamp": "2025-05-20T16:53:16.528000+00:00",
-      "duration": 2855,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-05-19T15:56:33.844000+00:00",
-      "duration": 2831,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-05-15T16:44:30.485000+00:00",
-      "duration": 1283,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-05-15T16:16:07.727000+00:00",
-      "duration": 1682,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-05-13T16:18:23.800000+00:00",
-      "duration": 2795,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-05-10T10:58:41.028000+00:00",
-      "duration": 3866,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-05-08T10:49:24.922000+00:00",
-      "duration": 2945,
-      "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
-      }
-    },
-    {
-      "timestamp": "2025-05-07T22:44:01.499000+00:00",
-      "duration": 720,
+      "timestamp": "2026-04-19T17:02:07.215000+00:00",
+      "duration": 3285,
       "data": {
         "app": "Brothers-Win64-Shipping.exe",
         "title": "Brothers: A Tale of Two Sons Remake"
       }
     },
     {
-      "timestamp": "2025-05-06T16:41:04.726000+00:00",
-      "duration": 2839,
+      "timestamp": "2026-04-20T15:19:43.392000+00:00",
+      "duration": 2938,
       "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
       }
     },
     {
-      "timestamp": "2025-05-04T09:07:10.676000+00:00",
-      "duration": 3278,
+      "timestamp": "2026-04-26T16:39:09.220000+00:00",
+      "duration": 2818,
       "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
       }
     },
     {
-      "timestamp": "2025-05-03T12:43:51.312000+00:00",
-      "duration": 2895,
+      "timestamp": "2026-05-05T14:53:29.746000+00:00",
+      "duration": 3989,
       "data": {
-        "app": "ItTakesTwo.exe",
-        "title": "It Takes Two"
+        "app": "FIFA18.exe",
+        "title": "FIFA 18"
       }
     },
     {
-      "timestamp": "2026-07-02T16:54:57.706000+00:00",
-      "duration": 3329,
+      "timestamp": "2026-05-12T17:53:05.772000+00:00",
+      "duration": 3536,
       "data": {
-        "app": "FortniteClient-Win64-Shipping.exe",
-        "title": "Fortnite"
+        "app": "Unboxed-Win64-Shipping.exe",
+        "title": "HYPERCHARGE: Unboxed"
       }
     },
     {
-      "timestamp": "2026-06-02T17:47:11+00:00",
-      "duration": 2498,
+      "timestamp": "2026-05-13T18:00:51+00:00",
+      "duration": 3552,
       "data": {
-        "app": "FortniteClient-Win64-Shipping.exe",
-        "title": "Fortnite"
+        "app": "msedge.exe",
+        "title": "BrawlStars"
       }
     },
     {
-      "timestamp": "2026-05-24T18:02:33.454000+00:00",
-      "duration": 3587,
+      "timestamp": "2026-05-14T10:18:37.285000+00:00",
+      "duration": 3333,
       "data": {
-        "app": "FortniteClient-Win64-Shipping.exe",
-        "title": "Fortnite"
+        "app": "Unboxed-Win64-Shipping.exe",
+        "title": "HYPERCHARGE: Unboxed"
       }
     },
     {
-      "timestamp": "2026-05-19T17:40:17.664000+00:00",
-      "duration": 2520,
+      "timestamp": "2026-05-15T09:22:12+00:00",
+      "duration": 3517,
       "data": {
-        "app": "FortniteClient-Win64-Shipping.exe",
-        "title": "Fortnite"
+        "app": "Towers-Win64-Shipping.exe",
+        "title": "Revenge of the Savage Planet"
       }
     },
     {
-      "timestamp": "2026-05-16T16:13:18.442000+00:00",
-      "duration": 1316,
+      "timestamp": "2026-06-04T15:05:26.024000+00:00",
+      "duration": 3255,
       "data": {
-        "app": "FortniteClient-Win64-Shipping.exe",
-        "title": "Fortnite"
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
       }
     },
     {
-      "timestamp": "2026-05-16T15:40:48.286000+00:00",
-      "duration": 1843,
+      "timestamp": "2026-06-06T08:52:50.206000+00:00",
+      "duration": 3209,
       "data": {
-        "app": "FortniteClient-Win64-Shipping.exe",
-        "title": "Fortnite"
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
       }
     },
     {
-      "timestamp": "2026-05-03T16:53:22.650000+00:00",
-      "duration": 4599,
+      "timestamp": "2026-06-11T14:32:27.574000+00:00",
+      "duration": 3117,
       "data": {
-        "app": "RocketLeague.exe",
-        "title": "Rocket League (64-bit, DX11, Cooked)"
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
       }
     },
     {
-      "timestamp": "2026-04-24T17:51:55+00:00",
-      "duration": 3325,
+      "timestamp": "2026-06-13T09:52:11.908000+00:00",
+      "duration": 844,
       "data": {
-        "app": "RocketLeague.exe",
-        "title": "Rocket League (64-bit, DX11, Cooked)"
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
       }
     },
     {
-      "timestamp": "2026-04-21T16:42:37.209000+00:00",
-      "duration": 2972,
+      "timestamp": "2026-06-13T10:06:18.602000+00:00",
+      "duration": 2375,
       "data": {
-        "app": "RocketLeague.exe",
-        "title": "Rocket League (64-bit, DX11, Cooked)"
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T14:03:19.638000+00:00",
+      "duration": 2945,
+      "data": {
+        "app": "NucleusCoop.exe",
+        "title": "Wreckfest"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T16:34:00.115000+00:00",
+      "duration": 2769,
+      "data": {
+        "app": "NucleusCoop.exe",
+        "title": "Wreckfest"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T17:48:22.017000+00:00",
+      "duration": 2834,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T15:59:44.441000+00:00",
+      "duration": 3787,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T18:02:19.408000+00:00",
+      "duration": 5321,
+      "data": {
+        "app": "ApplicationFrameHost.exe",
+        "title": "Einstellungen"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T16:57:42.021000+00:00",
+      "duration": 1245,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T17:18:28.327000+00:00",
+      "duration": 2485,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-06-26T18:08:57.844000+00:00",
+      "duration": 1905,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-06-26T18:41:03.501000+00:00",
+      "duration": 1973,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-06-28T07:01:43.524000+00:00",
+      "duration": 1455,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-06-28T07:26:01.872000+00:00",
+      "duration": 2597,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-06-29T12:17:26.296000+00:00",
+      "duration": 2166,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-06-29T12:53:45.341000+00:00",
+      "duration": 1512,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-06-30T12:41:14.060000+00:00",
+      "duration": 2231,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-07-01T12:43:44.414000+00:00",
+      "duration": 677,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-07-01T13:12:23.732000+00:00",
+      "duration": 1372,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-07-01T13:36:07.600000+00:00",
+      "duration": 1066,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-07-04T18:10:24.171000+00:00",
+      "duration": 3788,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T16:27:37.985000+00:00",
+      "duration": 3171,
+      "data": {
+        "app": "NucleusCoop.exe",
+        "title": "Wreckfest"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T18:07:42.700000+00:00",
+      "duration": 774,
+      "data": {
+        "app": "Orcs Must Die 3",
+        "title": "Orcs Must Die 3"
+      }
+    },
+    {
+      "timestamp": "2026-07-06T12:02:17.077000+00:00",
+      "duration": 3785,
+      "data": {
+        "app": "Goat2-Win64-Shipping.exe",
+        "title": "Goat Simulator 3"
+      }
+    },
+    {
+      "timestamp": "2026-07-12T14:44:28.685000+00:00",
+      "duration": 2988,
+      "data": {
+        "app": "Orcs Must Die 3",
+        "title": "Orcs Must Die 3"
+      }
+    },
+    {
+      "timestamp": "2026-07-16T07:51:12+00:00",
+      "duration": 1220,
+      "data": {
+        "app": "Wreckfest",
+        "title": "Wreckfest"
+      }
+    },
+    {
+      "timestamp": "2026-07-16T08:13:47.171000+00:00",
+      "duration": 3044,
+      "data": {
+        "app": "Orcs Must Die 3",
+        "title": "Orcs Must Die 3"
+      }
+    },
+    {
+      "timestamp": "2026-07-18T18:23:15.630000+00:00",
+      "duration": 2168,
+      "data": {
+        "app": "Orcs Must Die 3",
+        "title": "Orcs Must Die 3"
+      }
+    },
+    {
+      "timestamp": "2026-07-18T19:09:56.278000+00:00",
+      "duration": 1902,
+      "data": {
+        "app": "Orcs Must Die 3",
+        "title": "Orcs Must Die 3"
+      }
+    },
+    {
+      "timestamp": "2026-07-20T09:27:27.362000+00:00",
+      "duration": 3596,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-07-21T17:18:22.571000+00:00",
+      "duration": 3699,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-07-23T09:24:14.015000+00:00",
+      "duration": 3629,
+      "data": {
+        "app": "javaw.exe",
+        "title": "Rafa - Minecraft"
+      }
+    },
+    {
+      "timestamp": "2026-07-24T10:23:31.421000+00:00",
+      "duration": 4282,
+      "data": {
+        "app": "Wreckfest",
+        "title": "Wreckfest"
+      }
+    },
+    {
+      "timestamp": "2026-08-23T13:57:11.099000+00:00",
+      "duration": 3366,
+      "data": {
+        "app": "Retimed.exe",
+        "title": "Retimed"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T08:43:28.031000+00:00",
+      "duration": 1283,
+      "data": {
+        "app": "ApplicationFrameHost.exe",
+        "title": "Einstellungen"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T09:05:23.903000+00:00",
+      "duration": 1900,
+      "data": {
+        "app": "ApplicationFrameHost.exe",
+        "title": "Einstellungen"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T11:39:26.212000+00:00",
+      "duration": 2948,
+      "data": {
+        "app": "Retimed.exe",
+        "title": "Retimed"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T12:28:57.352000+00:00",
+      "duration": 689,
+      "data": {
+        "app": "Retimed.exe",
+        "title": "Retimed"
       }
     }
   ]

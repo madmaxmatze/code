@@ -4,122 +4,131 @@ Export (run from anywhere):
 
     cd /Users/mathias/Documents/Projects/code/pc-background && python3 aw-buckets-export.py
 
-Fetch ActivityWatch data and write aw-buckets-export.json for the dashboard.
+Fetch kids gaming events from ActivityWatch via the query API and write
+aw-buckets-export.json for offline/dev use in the dashboard.
 
-Fetches the full AW export API, keeps only aw-watcher-window events that match the
-kids-game title pattern (same rules as index.html), and writes aw-buckets-export.json
-in slim {meta, events} form.
+Category filtering uses the same rules as the AW UI (categorize + filter on
+$category). Only the 10-minute minimum is applied locally afterward.
 
-Configure INPUT_SOURCE and OUTPUT_PATH below.
+Configure AW_SERVER, KIDS_CATEGORY, and OUTPUT_PATH below.
 """
 
 from __future__ import annotations
 
 import datetime as dt
 import json
-import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Union
+from typing import Any, Dict, List
 from urllib.error import HTTPError, URLError
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
-# ActivityWatch export API (local or LAN).
-INPUT_SOURCE = "http://192.168.178.10:5600/api/0/export"
+# ActivityWatch server (local or LAN).
+AW_SERVER = "http://192.168.178.10:5600"
 
-# Dashboard default data file (optimized kids-only feed).
+# Category path as configured in the ActivityWatch UI.
+KIDS_CATEGORY = ["Media", "GamesKids"]
+
+# Dashboard default data file (pre-filtered kids feed).
 OUTPUT_PATH = SCRIPT_DIR / "aw-buckets-export.json"
 
-# HTTP timeout for the full export (can be large).
+# HTTP timeout (export query can take a few seconds).
 FETCH_TIMEOUT_SECONDS = 120
 
 # Minimum duration per event in seconds (10 minutes), matching the dashboard.
 MIN_DURATION_SECONDS = 600
 
-# Keep in sync with CONFIG.kidsPattern in index.html.
-KIDS_PATTERN = re.compile(
-    r"minecraft|takes|crashers|planet|fifa|cat|lego|goat|sackboy|fiction|sonic|"
-    r"overcooked|brawlstars|brothers|gigabash|nba|rocket|fortnite|hypercharge|"
-    r"wreckfest|orcs|retimed",
-    re.IGNORECASE,
-)
-
 WINDOW_BUCKET_SUBSTRING = "aw-watcher-window"
 
 
-def load_json(source: Union[Path, str]) -> Any:
-    """Load JSON from a local file or HTTP(S) URL."""
-    if isinstance(source, str) and source.startswith(("http://", "https://")):
-        try:
-            with urlopen(source, timeout=FETCH_TIMEOUT_SECONDS) as resp:  # nosec
-                text = resp.read().decode("utf-8")
-        except (HTTPError, URLError) as e:
-            raise RuntimeError(f"Failed to fetch JSON from {source}: {e}") from e
-    else:
-        text = Path(source).read_text(encoding="utf-8")
-
-    return json.loads(text)
+def api_base(server: str) -> str:
+    return server.rstrip("/") + "/api/0"
 
 
-def extract_window_events(raw: Any) -> List[Dict[str, Any]]:
-    """Return window-watcher events only (ignore AFK etc.)."""
-    if not raw:
-        return []
-
-    if isinstance(raw, dict) and isinstance(raw.get("buckets"), dict):
-        events: List[Dict[str, Any]] = []
-        for bucket_id, bucket in raw["buckets"].items():
-            if WINDOW_BUCKET_SUBSTRING not in str(bucket_id):
-                continue
-            evs = bucket.get("events")
-            if isinstance(evs, list):
-                events.extend(evs)
-        return events
-
-    if isinstance(raw, dict) and isinstance(raw.get("events"), list):
-        return list(raw["events"])
-
-    if isinstance(raw, list):
-        if raw and isinstance(raw[0], dict) and isinstance(raw[0].get("events"), list):
-            events = []
-            for bucket in raw:
-                bucket_id = bucket.get("id", "")
-                if WINDOW_BUCKET_SUBSTRING not in str(bucket_id):
-                    continue
-                evs = bucket.get("events")
-                if isinstance(evs, list):
-                    events.extend(evs)
-            return events
-        return list(raw)
-
-    return []
-
-
-def is_kids_event(ev: Dict[str, Any]) -> bool:
-    """Return True if the event should be included in the kids feed."""
-    if not ev or "timestamp" not in ev:
-        return False
-
+def fetch_json(url: str) -> Any:
     try:
-        duration = float(ev.get("duration", 0))
-    except (TypeError, ValueError):
-        return False
+        with urlopen(url, timeout=FETCH_TIMEOUT_SECONDS) as resp:  # nosec
+            return json.loads(resp.read().decode("utf-8"))
+    except (HTTPError, URLError) as e:
+        raise RuntimeError(f"Failed to fetch {url}: {e}") from e
 
-    if duration < MIN_DURATION_SECONDS:
-        return False
 
-    data = ev.get("data") or {}
-    title = str(data.get("title", "")).strip()
-    if not title:
-        return False
+def post_json(url: str, payload: Dict[str, Any]) -> Any:
+    body = json.dumps(payload).encode("utf-8")
+    req = Request(  # nosec
+        url,
+        data=body,
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urlopen(req, timeout=FETCH_TIMEOUT_SECONDS) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except (HTTPError, URLError) as e:
+        raise RuntimeError(f"Failed to post {url}: {e}") from e
 
-    return bool(KIDS_PATTERN.search(title))
+
+def classes_for_query(api: str) -> List[List[Any]]:
+    """Return [[name, rule], ...] for the query categorize() call."""
+    classes = fetch_json(api + "/settings/classes")
+    if not isinstance(classes, list):
+        settings = fetch_json(api + "/settings")
+        classes = settings.get("classes") if isinstance(settings, dict) else None
+    if not isinstance(classes, list):
+        raise RuntimeError("ActivityWatch settings contain no classes.")
+    return [[entry["name"], entry["rule"]] for entry in classes]
+
+
+def query_timeperiod(api: str) -> str:
+    """Full history: earliest window-bucket creation → now (UTC)."""
+    buckets = fetch_json(api + "/buckets/")
+    if not isinstance(buckets, dict):
+        raise RuntimeError("Unexpected buckets response from ActivityWatch.")
+
+    created_values = [
+        meta["created"]
+        for bucket_id, meta in buckets.items()
+        if WINDOW_BUCKET_SUBSTRING in str(bucket_id) and meta.get("created")
+    ]
+    if not created_values:
+        raise RuntimeError("No aw-watcher-window bucket found on ActivityWatch server.")
+
+    start = min(created_values)
+    end = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
+    return f"{start}/{end}"
+
+
+def build_kids_query(classes: List[List[Any]], category: List[str]) -> List[str]:
+    """Query: window events → categorize → filter to kids category."""
+    classes_json = json.dumps(classes)
+    category_json = json.dumps([category])
+    return [
+        'events = flood(query_bucket(find_bucket("aw-watcher-window_")));',
+        f"events = categorize(events, {classes_json});",
+        f'events = filter_keyvals(events, "$category", {category_json});',
+        "RETURN = events;",
+    ]
+
+
+def fetch_kids_events(api: str, category: List[str]) -> List[Dict[str, Any]]:
+    classes = classes_for_query(api)
+    query = build_kids_query(classes, category)
+    timeperiod = query_timeperiod(api)
+    result = post_json(
+        api + "/query/",
+        {"query": query, "timeperiods": [timeperiod]},
+    )
+    if not isinstance(result, list) or not result:
+        return []
+    events = result[0]
+    if not isinstance(events, list):
+        raise RuntimeError("Unexpected query result from ActivityWatch.")
+    return events
 
 
 def normalise_event(ev: Dict[str, Any]) -> Dict[str, Any]:
-    """Slim event object with only the fields the dashboard needs."""
     data_in = ev.get("data") or {}
     return {
         "timestamp": ev["timestamp"],
@@ -131,9 +140,14 @@ def normalise_event(ev: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def build_export(events: Iterable[Dict[str, Any]], source: str) -> Dict[str, Any]:
-    """Build the optimized JSON document with meta + filtered events."""
-    filtered = [normalise_event(ev) for ev in events if is_kids_event(ev)]
+def build_export(events: List[Dict[str, Any]], source: str) -> Dict[str, Any]:
+    filtered = [
+        normalise_event(ev)
+        for ev in events
+        if ev
+        and ev.get("timestamp")
+        and float(ev.get("duration", 0) or 0) >= MIN_DURATION_SECONDS
+    ]
     generated_at = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
 
     return {
@@ -141,6 +155,7 @@ def build_export(events: Iterable[Dict[str, Any]], source: str) -> Dict[str, Any
             "generatedAt": generated_at.replace("+00:00", "Z"),
             "timezone": dt.datetime.now().astimezone().tzname() or "local",
             "source": source,
+            "category": KIDS_CATEGORY,
             "eventCount": len(filtered),
         },
         "events": filtered,
@@ -148,7 +163,6 @@ def build_export(events: Iterable[Dict[str, Any]], source: str) -> Dict[str, Any
 
 
 def write_if_changed(path: Path, content: str) -> bool:
-    """Write file only when content changed. Returns True if written."""
     if path.exists() and path.read_text(encoding="utf-8") == content:
         return False
     path.write_text(content, encoding="utf-8")
@@ -156,12 +170,14 @@ def write_if_changed(path: Path, content: str) -> bool:
 
 
 def main() -> None:
-    print(f"Fetching {INPUT_SOURCE} ...")
-    raw = load_json(INPUT_SOURCE)
-    window_events = extract_window_events(raw)
-    print(f"Window events in export: {len(window_events)}")
+    api = api_base(AW_SERVER)
+    category_label = " > ".join(KIDS_CATEGORY)
+    print(f"Querying {AW_SERVER} for category {category_label} ...")
 
-    export_doc = build_export(window_events, str(INPUT_SOURCE))
+    events = fetch_kids_events(api, KIDS_CATEGORY)
+    print(f"Kids category events from query: {len(events)}")
+
+    export_doc = build_export(events, AW_SERVER)
     content = json.dumps(export_doc, ensure_ascii=False, indent=2)
 
     written = write_if_changed(OUTPUT_PATH, content)
