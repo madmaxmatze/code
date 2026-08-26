@@ -81,6 +81,12 @@
           "https://w.wallhaven.cc/full/l8/wallhaven-l88ppq.jpg",  // assassins creed wiking
           "https://w.wallhaven.cc/full/ml/wallhaven-mlz378.jpg",  // expedition 33
           "https://w.wallhaven.cc/full/01/wallhaven-01xdl3.jpg",  // one piece
+          "https://w.wallhaven.cc/full/rq/wallhaven-rq2wgq.png",  // dragonball
+          "https://w.wallhaven.cc/full/po/wallhaven-pogojp.jpg",  // the last of us
+          "https://w.wallhaven.cc/full/l3/wallhaven-l31vz2.png",  // minecraft
+          "https://w.wallhaven.cc/full/j3/wallhaven-j31g9y.jpg",  // minecraft
+          "https://w.wallhaven.cc/full/21/wallhaven-218jmg.jpg",  // frostpunk
+          "https://w.wallhaven.cc/full/nr/wallhaven-nrkrj1.jpg",  // star wars
         ],
 
         // Monatskontingente (Stunden), aufsteigend nach Jahr/Monat.
@@ -156,6 +162,42 @@
         --dashboard-scale: 1;
       }
 
+      #bg-cycle-btn {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 20;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        padding: 0;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.38);
+        color: #f8fafc;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(10px);
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      #bg-cycle-btn:hover {
+        background: rgba(0, 0, 0, 0.52);
+        border-color: rgba(255, 255, 255, 0.28);
+        transform: scale(1.05);
+      }
+
+      #bg-cycle-btn:active {
+        transform: scale(0.97);
+      }
+
+      #bg-cycle-btn svg {
+        width: 1.15rem;
+        height: 1.15rem;
+      }
+
       /* Wrapper: Breite skaliert, Höhe folgt dem Inhalt (zoom vergrößert Layout) */
       .stats-panel-wrapper {
         position: fixed;
@@ -169,6 +211,7 @@
         pointer-events: none;
       }
 
+      .stats-panel-wrapper > #bg-cycle-btn,
       .stats-panel-wrapper > #stats-panel {
         pointer-events: auto;
       }
@@ -486,6 +529,7 @@
 
       @media (max-width: 900px) {
         .stats-panel-wrapper {
+          top: 0.75rem;
           width: calc(min(90vw, 480px) * var(--dashboard-scale));
           right: 0.75rem;
         }
@@ -507,6 +551,20 @@
 
   <body>
       <div class="stats-panel-wrapper">
+      <button
+        id="bg-cycle-btn"
+        type="button"
+        title="Hintergrund wechseln"
+        aria-label="Hintergrund wechseln"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+          <path d="M16 16h5v5" />
+        </svg>
+      </button>
+
       <div id="stats-panel">
         <div id="dev-badge">DEV DATA</div>
         <div id="charts-container">
@@ -624,6 +682,7 @@
         // Nach der Skalierung Chart.js informieren, damit Hit-Tests (Tooltips)
         // wieder zur sichtbaren Größe passen.
         requestAnimationFrame(() => {
+          updateBgCycleBtnPosition();
           if (dayChartInstance) {
             dayChartInstance.resize();
           }
@@ -634,6 +693,20 @@
             gamesChartInstance.resize();
           }
         });
+      }
+
+      function updateBgCycleBtnPosition() {
+        const panel = document.getElementById("stats-panel");
+        const btn = document.getElementById("bg-cycle-btn");
+        const wrapper = document.querySelector(".stats-panel-wrapper");
+        if (!panel || !btn || !wrapper) return;
+
+        const panelRect = panel.getBoundingClientRect();
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const gapPx = 8;
+
+        btn.style.top = `${panelRect.top - wrapperRect.top}px`;
+        btn.style.left = `${panelRect.left - wrapperRect.left - btn.offsetWidth - gapPx}px`;
       }
 
       /** Stunden als H:MM (z. B. 1,25 h → 1:15). Minuten-Angaben bleiben unverändert. */
@@ -2128,6 +2201,10 @@
       /** Start: Hintergrund, ggf. Cache anzeigen, dann API/Fallback laden; bei useApi + Fehler Refresh-Loop. */
       async function init() {
         setBackgroundImage();
+        const bgCycleBtn = document.getElementById("bg-cycle-btn");
+        if (bgCycleBtn) {
+          bgCycleBtn.addEventListener("click", setBackgroundImage);
+        }
         document.documentElement.style.setProperty("--dashboard-scale", "1");
         updateDevBadgeVisibility();
 
