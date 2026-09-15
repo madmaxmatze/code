@@ -193,6 +193,11 @@
         transform: scale(0.97);
       }
 
+      #bg-cycle-btn:disabled {
+        opacity: 0.55;
+        cursor: wait;
+      }
+
       #bg-cycle-btn svg {
         width: 1.15rem;
         height: 1.15rem;
@@ -554,8 +559,8 @@
       <button
         id="bg-cycle-btn"
         type="button"
-        title="Hintergrund wechseln"
-        aria-label="Hintergrund wechseln"
+        title="Hintergrund wechseln und Daten neu laden"
+        aria-label="Hintergrund wechseln und Daten neu laden"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -2169,6 +2174,34 @@
       }
 
       /**
+       * Lädt CONFIG.data_source neu und aktualisiert die Charts.
+       * Bei Fehler bleibt die aktuelle Anzeige erhalten. Ein leeres Ergebnis
+       * überschreibt eine bereits gezeichnete Anzeige nicht, damit ein
+       * kurzzeitig leerer Datensatz die Charts nicht leer blinken lässt.
+       */
+      async function reloadLiveData() {
+        const events = await loadEvents();
+        if (!events) {
+          console.warn(
+            "Live-Laden fehlgeschlagen – aktuelle Anzeige bleibt erhalten."
+          );
+          return false;
+        }
+
+        if (events.length) {
+          dataSourceLoadSucceeded = true;
+        } else if (dayChartInstance) {
+          console.warn(
+            "Leeres Ergebnis – aktuelle Anzeige bleibt erhalten."
+          );
+          return false;
+        }
+
+        applyData(events);
+        return true;
+      }
+
+      /**
        * Bei HTTP(S)-data_source: periodisch neu laden.
        * Schnell-Retry (5 s) nur bis zum ersten erfolgreichen Fetch, max. 60 s.
        * Danach refreshIntervalSeconds (Standard 300 s).
@@ -2186,11 +2219,7 @@
             );
         const isLongPeriod = !useQuickRetry;
         setTimeout(async () => {
-          const events = await loadEvents();
-          if (events && events.length) {
-            dataSourceLoadSucceeded = true;
-            applyData(events);
-          }
+          await reloadLiveData();
           if (isLongPeriod) {
             setBackgroundImage();
           }
@@ -2203,7 +2232,16 @@
         setBackgroundImage();
         const bgCycleBtn = document.getElementById("bg-cycle-btn");
         if (bgCycleBtn) {
-          bgCycleBtn.addEventListener("click", setBackgroundImage);
+          bgCycleBtn.addEventListener("click", async () => {
+            if (bgCycleBtn.disabled) return;
+            bgCycleBtn.disabled = true;
+            try {
+              setBackgroundImage();
+              await reloadLiveData();
+            } finally {
+              bgCycleBtn.disabled = false;
+            }
+          });
         }
         document.documentElement.style.setProperty("--dashboard-scale", "1");
         updateDevBadgeVisibility();
@@ -2217,17 +2255,7 @@
           updateQuotaDisplay(0, now.getFullYear(), now.getMonth());
         }
 
-        const events = await loadEvents();
-        if (events) {
-          if (events.length) {
-            dataSourceLoadSucceeded = true;
-          }
-          applyData(events);
-        } else {
-          console.warn(
-            "Live-Laden fehlgeschlagen – Cache-Anzeige bleibt erhalten."
-          );
-        }
+        await reloadLiveData();
 
         startRefreshLoop();
 
