@@ -130,6 +130,8 @@
 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Wallhaven u. a. blockieren Hotlinks anhand des Referrers. -->
+    <meta name="referrer" content="no-referrer" />
 
     <!-- Chart.js via cdnjs (https://cdnjs.cloudflare.com/) -->
     <!-- Hinweis: integrity entfernt, damit Browser die Datei nicht blockiert,
@@ -614,16 +616,61 @@
       </div>
 
     <script>
-      function setBackgroundImage() {
-        try {
-          if (CONFIG && Array.isArray(CONFIG.backgroundImages) && CONFIG.backgroundImages.length) {
-            const idx = Math.floor(Math.random() * CONFIG.backgroundImages.length);
-            const img = CONFIG.backgroundImages[idx];
-            document.body.style.backgroundImage = "url('" + img + "')";
-          }
-        } catch (err) {
-          console.error("Failed to set background image", err);
+      /** URLs, die in dieser Session nicht luden (z. B. 403 durch Hotlink-Schutz). */
+      const failedBackgroundImages = new Set();
+      /** Nur der jüngste Aufruf darf das Bild setzen, sonst überholt ein langsamer
+       *  Preload einen neueren Klick. */
+      let backgroundRequestId = 0;
+
+      /** Lädt die URL vorab und meldet, ob sie ein gültiges Bild liefert. */
+      function preloadImage(url) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve(true);
+          img.onerror = () => resolve(false);
+          img.src = url;
+        });
+      }
+
+      /**
+       * Wählt zufällig ein Hintergrundbild und setzt es erst, wenn es wirklich
+       * geladen werden konnte. Scheitert eine URL, wird die nächste versucht.
+       */
+      async function setBackgroundImage() {
+        const all = Array.isArray(CONFIG.backgroundImages)
+          ? CONFIG.backgroundImages
+          : [];
+        if (!all.length) return;
+
+        const requestId = ++backgroundRequestId;
+
+        // Sind alle URLs als gescheitert markiert, Liste zurücksetzen, damit sich
+        // temporäre Ausfälle von selbst erholen.
+        let candidates = all.filter((url) => !failedBackgroundImages.has(url));
+        if (!candidates.length) {
+          failedBackgroundImages.clear();
+          candidates = [...all];
         }
+
+        while (candidates.length) {
+          const [url] = candidates.splice(
+            Math.floor(Math.random() * candidates.length),
+            1
+          );
+
+          const loaded = await preloadImage(url);
+          if (requestId !== backgroundRequestId) return;
+
+          if (loaded) {
+            document.body.style.backgroundImage = "url('" + url + "')";
+            return;
+          }
+
+          failedBackgroundImages.add(url);
+          console.warn("Hintergrundbild nicht ladbar, nächstes wird versucht:", url);
+        }
+
+        console.error("Kein Hintergrundbild ladbar.");
       }
 
       // ---- Konstanten ----
@@ -1030,6 +1077,7 @@
           .replace(/\s*\([^)]*\)/g, "")
           .replace(/Rafa/gi, "")
           .replace(/Mateo/gi, "")
+          .replace(/:.*$/, "")
           .replace(/\s{2,}/g, " ")
           .replace(/^[\s-]+|[\s-]+$/g, "")
           .trim();
