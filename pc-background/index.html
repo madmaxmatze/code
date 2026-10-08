@@ -150,6 +150,9 @@
         color: #f8fafc;
         overflow-x: hidden;
         overflow-y: auto;
+        /* Desktop-Hintergrund: Text nie markieren; Klicks/Hover bleiben aktiv. */
+        -webkit-user-select: none;
+        user-select: none;
       }
 
       body {
@@ -351,6 +354,52 @@
         padding: 0.55rem 0.7rem 0.6rem 0.7rem;
         position: relative;
         overflow: visible;
+      }
+
+      /* Monat-Navigation: absolut auf dem Box-Rand, Chart-Breite unverändert. */
+      #section-current .chart-block {
+        position: relative;
+      }
+
+      .month-nav-btn {
+        --month-nav-w: 0.9rem;
+        position: absolute;
+        top: 50%;
+        z-index: 2;
+        width: var(--month-nav-w);
+        height: calc(var(--month-nav-w) * 2);
+        padding: 0;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        border-radius: 5px;
+        background: rgba(15, 23, 42, 0.72);
+        color: #e2e8f0;
+        font-size: 0.75rem;
+        line-height: 1;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+      }
+
+      #month-nav-prev {
+        left: 0;
+        transform: translate(-50%, -50%);
+      }
+
+      #month-nav-next {
+        right: 0;
+        transform: translate(50%, -50%);
+      }
+
+      .month-nav-btn:hover {
+        background: rgba(30, 41, 59, 0.92);
+        border-color: rgba(248, 250, 252, 0.45);
+        color: #f8fafc;
+      }
+
+      .month-nav-btn[hidden] {
+        display: none;
       }
 
       /* Externe Chart.js-Tooltips: am Balken verankert, scrollbar bei vielen Spielen. */
@@ -582,7 +631,9 @@
             </div>
 
             <div class="chart-block">
+              <button type="button" class="month-nav-btn" id="month-nav-prev" title="Früherer Monat" aria-label="Früherer Monat" hidden>‹</button>
               <canvas id="dayChart"></canvas>
+              <button type="button" class="month-nav-btn" id="month-nav-next" title="Späterer Monat" aria-label="Späterer Monat" hidden>›</button>
             </div>
           </div>
 
@@ -928,6 +979,11 @@
         return hours;
       }
 
+      /** Tagesrichtwert in Minuten: 45 vor 12h-Monatskontingent, sonst 60. */
+      function getDailyQuotaMinutes(year, monthIndex) {
+        return getMonthlyQuotaHours(year, monthIndex) >= 12 ? 60 : 45;
+      }
+
       function sumQuotaForMonths(months) {
         return months.reduce(
           (sum, { year, monthIndex }) =>
@@ -1116,12 +1172,11 @@
             : now.getDate();
 
         const monthlyByYearMonth = Object.create(null);
-        const dailyByApp = Array.from({ length: daysInCurrentMonth }, () =>
-          Object.create(null)
-        );
+        /** Tägliche Buckets pro Monat: key `${year}-${monthIndex}` → Array[dayIndex]. */
+        const dailyByYearMonth = Object.create(null);
 
-        let totalHoursThisMonth = 0;
         let matchedEvents = 0;
+        let earliestMonthKey = null; // year * 12 + monthIndex
         // Gesamtspielzeit über den gesamten Datensatz (für Honarable-Mentions-Tooltips).
         const totalHoursByApp = Object.create(null);
 
@@ -1232,14 +1287,23 @@
               bucket[gameKey] = (bucket[gameKey] || 0) + hours;
             }
 
-            if (year === currentYear && monthIndex === currentMonthIndex) {
-              const dayIndex = dayOfMonth - 1;
-              if (dayIndex >= 0 && dayIndex < daysInCurrentMonth) {
-                const dayBucket = dailyByApp[dayIndex];
-                dayBucket[gameKey] = (dayBucket[gameKey] || 0) + hours;
-              }
+            const monthKey = year * 12 + monthIndex;
+            if (earliestMonthKey == null || monthKey < earliestMonthKey) {
+              earliestMonthKey = monthKey;
+            }
 
-              totalHoursThisMonth += hours;
+            const dayKeyYM = `${year}-${monthIndex}`;
+            const daysInMonth = getDaysInMonth(year, monthIndex);
+            if (!dailyByYearMonth[dayKeyYM]) {
+              dailyByYearMonth[dayKeyYM] = Array.from(
+                { length: daysInMonth },
+                () => Object.create(null)
+              );
+            }
+            const dayIndex = dayOfMonth - 1;
+            if (dayIndex >= 0 && dayIndex < daysInMonth) {
+              const dayBucket = dailyByYearMonth[dayKeyYM][dayIndex];
+              dayBucket[gameKey] = (dayBucket[gameKey] || 0) + hours;
             }
           }
         }
@@ -1249,14 +1313,27 @@
         Object.values(monthlyByYearMonth).forEach((bucket) => {
           Object.keys(bucket).forEach((game) => appsSet.add(game));
         });
-        dailyByApp.forEach((bucket) => {
-          Object.keys(bucket).forEach((game) => appsSet.add(game));
-        });
         const apps = Array.from(appsSet).sort((a, b) => a.localeCompare(b));
+
+        const currentDayKey = `${currentYear}-${currentMonthIndex}`;
+        const dailyByApp =
+          dailyByYearMonth[currentDayKey] ||
+          Array.from({ length: daysInCurrentMonth }, () => Object.create(null));
+        let totalHoursThisMonth = 0;
+        for (const bucket of dailyByApp) {
+          for (const val of Object.values(bucket)) {
+            totalHoursThisMonth += Number(val) || 0;
+          }
+        }
+
+        const navLatestMonthKey = currentYear * 12 + currentMonthIndex;
+        const navEarliestMonthKey =
+          earliestMonthKey == null ? navLatestMonthKey : earliestMonthKey;
 
         return {
           apps,
           monthlyByYearMonth,
+          dailyByYearMonth,
           dailyByApp,
           totalHoursByApp,
           totalHoursThisMonth,
@@ -1265,6 +1342,8 @@
           daysInCurrentMonth,
           currentDayOfMonth,
           matchedEvents,
+          navEarliestMonthKey,
+          navLatestMonthKey,
         };
       }
 
@@ -1603,10 +1682,78 @@
         }));
       }
 
-      // Oberer Chart = aktueller Monat pro Tag; mittlerer Chart = letzte X Monate pro Monat.
+      // Oberer Chart = betrachteter Monat pro Tag; mittlerer Chart = letzte X Monate.
       let dayChartInstance = null;
       let monthChartInstance = null;
       let gamesChartInstance = null;
+      let lastAgg = null;
+      let viewedYear = null;
+      let viewedMonthIndex = null;
+
+      function monthKeyNum(year, monthIndex) {
+        return year * 12 + monthIndex;
+      }
+
+      function getDailyForMonth(agg, year, monthIndex) {
+        const stored = agg.dailyByYearMonth?.[`${year}-${monthIndex}`];
+        if (stored) return stored;
+        return Array.from(
+          { length: getDaysInMonth(year, monthIndex) },
+          () => Object.create(null)
+        );
+      }
+
+      function sumDailyHours(days) {
+        let total = 0;
+        for (const bucket of days || []) {
+          for (const val of Object.values(bucket)) total += Number(val) || 0;
+        }
+        return total;
+      }
+
+      function updateMonthNavButtons() {
+        const prevBtn = document.getElementById("month-nav-prev");
+        const nextBtn = document.getElementById("month-nav-next");
+        if (!prevBtn || !nextBtn) return;
+        if (!lastAgg || viewedYear == null || viewedMonthIndex == null) {
+          prevBtn.hidden = true;
+          nextBtn.hidden = true;
+          return;
+        }
+        const viewed = monthKeyNum(viewedYear, viewedMonthIndex);
+        prevBtn.hidden = viewed <= lastAgg.navEarliestMonthKey;
+        nextBtn.hidden = viewed >= lastAgg.navLatestMonthKey;
+      }
+
+      function updateCurrentMonthHeadingAndQuota(agg, year, monthIndex) {
+        const el = document.getElementById("heading-current");
+        if (el) {
+          el.textContent = new Date(year, monthIndex, 1).toLocaleString(
+            "de-DE",
+            { month: "long", year: "numeric" }
+          );
+        }
+        updateQuotaDisplay(
+          sumDailyHours(getDailyForMonth(agg, year, monthIndex)),
+          year,
+          monthIndex
+        );
+      }
+
+      function shiftViewedMonth(delta) {
+        if (!lastAgg || viewedYear == null || viewedMonthIndex == null) return;
+        const next = monthKeyNum(viewedYear, viewedMonthIndex) + delta;
+        if (
+          next < lastAgg.navEarliestMonthKey ||
+          next > lastAgg.navLatestMonthKey
+        ) {
+          return;
+        }
+        viewedYear = Math.floor(next / 12);
+        viewedMonthIndex = ((next % 12) + 12) % 12;
+        updateCurrentMonthHeadingAndQuota(lastAgg, viewedYear, viewedMonthIndex);
+        renderCharts(lastAgg, { dayOnly: true });
+      }
 
       const CATEGORY_TICK_COLOR = "#cbd5f5";
       const CATEGORY_TICK_ACTIVE_COLOR = "#f8fafc";
@@ -1758,12 +1905,17 @@
       };
       Chart.register(monthlyQuotaStepLinePlugin);
 
-      /** Erstellt/aktualisiert alle drei Charts (Pro Monat, Pro Jahr, Pro Jahr & Spiel). */
-      function renderCharts(agg) {
+      /** Erstellt/aktualisiert Charts. dayOnly: nur Tageschart (Monat-Navigation). */
+      function renderCharts(agg, { dayOnly = false } = {}) {
         hideExternalChartTooltip();
         const X = getMonthsToShow();
         const currentYear = agg.currentYear;
         const currentMonthIndex = agg.currentMonthIndex;
+        const viewY = viewedYear != null ? viewedYear : currentYear;
+        const viewM =
+          viewedMonthIndex != null ? viewedMonthIndex : currentMonthIndex;
+        const daysInViewedMonth = getDaysInMonth(viewY, viewM);
+        const dailyQuotaMin = getDailyQuotaMinutes(viewY, viewM);
         const lastXMonths = Array.from({ length: X }, (_, i) => {
           const monthIndex = (currentMonthIndex - X + 1 + i + 12) % 12;
           const year = currentYear - (currentMonthIndex - X + 1 + i < 0 ? 1 : 0);
@@ -1777,7 +1929,7 @@
           ({ year, monthIndex }) => monthlyByYearMonth[`${year}-${monthIndex}`] || {}
         );
         const dayLabels = Array.from(
-          { length: agg.daysInCurrentMonth },
+          { length: daysInViewedMonth },
           (_, i) => String(i + 1)
         );
 
@@ -1797,7 +1949,7 @@
         );
         // Tages-Chart in Minuten: Buckets vor dem Ranking auf Minuten umrechnen,
         // damit Balken- und Tooltip-Werte konsistent sind.
-        const dailyByAppMinutes = agg.dailyByApp.map((bucket) => {
+        const dailyByAppMinutes = getDailyForMonth(agg, viewY, viewM).map((bucket) => {
           const scaled = {};
           for (const [app, hours] of Object.entries(bucket)) {
             scaled[app] = hours * 60;
@@ -1872,6 +2024,12 @@
             x: commonOptions.scales.x,
             y: {
               ...commonOptions.scales.y,
+              suggestedMax: Math.max(
+                ...lastXMonths.map(({ year, monthIndex }) =>
+                  getMonthlyQuotaHours(year, monthIndex)
+                ),
+                0
+              ),
               ticks: {
                 ...commonOptions.scales.y.ticks,
                 callback: (value) => String(Math.round(value)) + "h",
@@ -1886,20 +2044,22 @@
           },
         };
 
-        // Oberer Chart (aktueller Monat pro Tag) in Minuten; Wochenenden hervorheben
+        // Oberer Chart (betrachteter Monat pro Tag) in Minuten; Wochenenden hervorheben
         const dayOptions = {
           ...commonOptions,
           plugins: {
             ...commonOptions.plugins,
             weekendBackground: {
-              currentYear: agg.currentYear,
-              currentMonthIndex: agg.currentMonthIndex,
-              daysInMonth: agg.daysInCurrentMonth,
-              todayDay: agg.currentDayOfMonth ?? null,
+              currentYear: viewY,
+              currentMonthIndex: viewM,
+              daysInMonth: daysInViewedMonth,
+              todayDay:
+                viewY === currentYear && viewM === currentMonthIndex
+                  ? agg.currentDayOfMonth ?? null
+                  : null,
             },
-            // Grober Tagesrichtwert: 60 min als horizontale Budget-Linie.
             dailyTargetLine: {
-              value: 60,
+              value: dailyQuotaMin,
               color: "rgba(240, 245, 250, 0.65)",
               lineWidth: 1.5,
             },
@@ -1909,11 +2069,10 @@
               getTitle: (items) => {
                 if (!items.length) return "";
                 const day = items[0].label;
-                const monthName = new Date(
-                  agg.currentYear,
-                  agg.currentMonthIndex,
-                  1
-                ).toLocaleString("de", { month: "long" });
+                const monthName = new Date(viewY, viewM, 1).toLocaleString(
+                  "de",
+                  { month: "long" }
+                );
                 return `${day}. ${monthName}`;
               },
             }),
@@ -1929,6 +2088,7 @@
             },
             y: {
               ...commonOptions.scales.y,
+              suggestedMax: dailyQuotaMin,
               ticks: {
                 ...commonOptions.scales.y.ticks,
                 callback: (value) => String(Math.round(value)) + "m",
@@ -1937,6 +2097,18 @@
             },
           },
         };
+
+        if (dayOnly) {
+          const dayCtxOnly = document.getElementById("dayChart").getContext("2d");
+          if (dayChartInstance) dayChartInstance.destroy();
+          dayChartInstance = new Chart(dayCtxOnly, {
+            type: "bar",
+            data: { labels: dayLabels, datasets: dayDatasets },
+            options: dayOptions,
+          });
+          updateMonthNavButtons();
+          return;
+        }
 
         const gamesCtx = document
           .getElementById("gamesChart")
@@ -2089,6 +2261,8 @@
           },
           options: monthOptions,
         });
+
+        updateMonthNavButtons();
       }
 
       /** Setzt Überschrift „X / N h gespielt“ und (ausgeblendeten) Fortschrittsbalken. */
@@ -2121,24 +2295,27 @@
         const currentYear = now.getFullYear();
         const currentMonthIndex = now.getMonth();
         const daysInCurrentMonth = getDaysInMonth(currentYear, currentMonthIndex);
+
+        function setView(agg) {
+          lastAgg = agg;
+          viewedYear = agg.currentYear;
+          viewedMonthIndex = agg.currentMonthIndex;
+          updateCurrentMonthHeadingAndQuota(agg, viewedYear, viewedMonthIndex);
+          renderCharts(agg);
+          requestAnimationFrame(updatePanelScaleToHeight);
+        }
+
         if (!events || !events.length) {
-          updateQuotaDisplay(0, currentYear, currentMonthIndex);
-          const monthDate = new Date(currentYear, currentMonthIndex, 1);
-          const monthLabel = monthDate.toLocaleString("de-DE", {
-            month: "long",
-            year: "numeric",
-          });
-          const currentHeading = document.getElementById("heading-current");
           const yearLabelEl = document.getElementById("heading-year-label");
           const yearSummaryEl = document.getElementById("heading-year-summary");
-          if (currentHeading) currentHeading.textContent = monthLabel;
           if (yearLabelEl)
             yearLabelEl.textContent =
               "Letzten " + getMonthsToShow() + " Monate";
           if (yearSummaryEl) yearSummaryEl.textContent = "";
-          const emptyAgg = {
+          setView({
             apps: [],
             monthlyByYearMonth: {},
+            dailyByYearMonth: {},
             dailyByApp: Array.from({ length: daysInCurrentMonth }, () => ({})),
             totalHoursByApp: {},
             totalHoursThisMonth: 0,
@@ -2147,11 +2324,12 @@
             daysInCurrentMonth,
             currentDayOfMonth: now.getDate(),
             matchedEvents: 0,
-          };
-          renderCharts(emptyAgg);
-          requestAnimationFrame(updatePanelScaleToHeight);
+            navEarliestMonthKey: monthKeyNum(currentYear, currentMonthIndex),
+            navLatestMonthKey: monthKeyNum(currentYear, currentMonthIndex),
+          });
           return;
         }
+
         const agg = aggregate(events);
         if (!agg.matchedEvents || agg.matchedEvents === 0 || !agg.apps.length) {
           console.warn(
@@ -2159,66 +2337,42 @@
               CONFIG.kidsCategory.join(" > ") +
               '" gefunden.'
           );
-          updateQuotaDisplay(0, agg.currentYear, agg.currentMonthIndex);
-          renderCharts(agg);
-          requestAnimationFrame(updatePanelScaleToHeight);
+          setView(agg);
           return;
         }
         console.info("Gefilterte Spiele-Einträge:", agg.matchedEvents);
-        const currentHeading = document.getElementById("heading-current");
+
         const yearLabelEl = document.getElementById("heading-year-label");
         const yearSummaryEl = document.getElementById("heading-year-summary");
-        const monthDate = new Date(agg.currentYear, agg.currentMonthIndex, 1);
-        const monthLabel = monthDate.toLocaleString("de-DE", {
-          month: "long",
-          year: "numeric",
-        });
-        if (currentHeading) currentHeading.textContent = monthLabel;
-
         const monthsToShow = getMonthsToShow();
 
-        // Gesamtstunden der letzten 12 Monate berechnen (unabhängig von monthsToShow)
-        const monthsBackForQuota = 12;
-        const last12Months = Array.from(
-          { length: monthsBackForQuota },
-          (_, i) => {
-            const idxFromEnd = i;
-            const monthIndex =
-              (agg.currentMonthIndex - idxFromEnd + 12) % 12;
-            const year =
-              agg.currentYear -
-              (agg.currentMonthIndex - idxFromEnd < 0 ? 1 : 0);
-            return { year, monthIndex };
-          }
-        );
+        // Gesamtstunden der letzten 12 Monate (unabhängig von monthsToShow)
+        const last12Months = Array.from({ length: 12 }, (_, i) => {
+          const monthIndex = (agg.currentMonthIndex - i + 12) % 12;
+          const year =
+            agg.currentYear - (agg.currentMonthIndex - i < 0 ? 1 : 0);
+          return { year, monthIndex };
+        });
         let hoursLast12 = 0;
         const monthlyByYearMonth = agg.monthlyByYearMonth || {};
         for (const { year, monthIndex } of last12Months) {
-          const key = `${year}-${monthIndex}`;
-          const bucket = monthlyByYearMonth[key];
+          const bucket = monthlyByYearMonth[`${year}-${monthIndex}`];
           if (!bucket) continue;
           for (const val of Object.values(bucket)) {
-            const h = Number(val) || 0;
-            hoursLast12 += h;
+            hoursLast12 += Number(val) || 0;
           }
         }
-        const quotaLast12 = sumQuotaForMonths(last12Months);
-        const last12Summary =
-          Math.floor(hoursLast12) + " / " + quotaLast12 + "h";
-
         if (yearLabelEl) {
           yearLabelEl.textContent = "Letzten " + monthsToShow + " Monate";
         }
         if (yearSummaryEl) {
-          yearSummaryEl.textContent = last12Summary;
+          yearSummaryEl.textContent =
+            Math.floor(hoursLast12) +
+            " / " +
+            sumQuotaForMonths(last12Months) +
+            "h";
         }
-        updateQuotaDisplay(
-          agg.totalHoursThisMonth,
-          agg.currentYear,
-          agg.currentMonthIndex
-        );
-        renderCharts(agg);
-        requestAnimationFrame(updatePanelScaleToHeight);
+        setView(agg);
       }
 
       /**
@@ -2290,6 +2444,14 @@
               bgCycleBtn.disabled = false;
             }
           });
+        }
+        const monthNavPrev = document.getElementById("month-nav-prev");
+        const monthNavNext = document.getElementById("month-nav-next");
+        if (monthNavPrev) {
+          monthNavPrev.addEventListener("click", () => shiftViewedMonth(-1));
+        }
+        if (monthNavNext) {
+          monthNavNext.addEventListener("click", () => shiftViewedMonth(1));
         }
         document.documentElement.style.setProperty("--dashboard-scale", "1");
         updateDevBadgeVisibility();
